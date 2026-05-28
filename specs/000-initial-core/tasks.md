@@ -29,11 +29,11 @@ We will build the application from the inside out: starting with data models, th
 ## Phase 2: Foundational Components
 **Goal**: Build the data models, configuration storage, and core utility classes that all stories depend on.
 
-- [ ] T005 [P] Create `Rule`, `TargetBrowser`, and `AppConfiguration` Codable structs in `Browserly/Core/Models/ConfigurationModels.swift`.
-- [ ] T006 [P] Implement `ConfigManager` to load/save JSON from `Application Support` and generate defaults in `Browserly/Core/Storage/ConfigManager.swift`.
-- [ ] T007 [P] Implement `RoutingEngine` with domain, regex, and source app matching logic in `Browserly/Core/Routing/RoutingEngine.swift`.
-- [ ] T008 [P] Implement `BrowserDetector` using `LSCopyAllHandlersForURLScheme` in `Browserly/System/BrowserDetector.swift`.
-- [ ] T009 [P] Create `HistoryItem` struct and `HistoryManager` class for in-memory recent links in `Browserly/Core/Storage/HistoryManager.swift`.
+- [x] T005 [P] Create `Rule`, `TargetBrowser`, and `AppConfiguration` Codable structs in `Browserly/Core/Models/ConfigurationModels.swift`.
+- [x] T006 [P] Implement `ConfigManager` to load/save JSON from `Application Support` and generate defaults in `Browserly/Core/Storage/ConfigManager.swift`.
+- [x] T007 [P] Implement `RoutingEngine` with domain, regex, and source app matching logic in `Browserly/Core/Routing/RoutingEngine.swift`.
+- [x] T008 [P] Implement `BrowserDetector` using `LSCopyAllHandlersForURLScheme` in `Browserly/System/BrowserDetector.swift`.
+- [x] T009 [P] Create `HistoryItem` struct and `HistoryManager` class for in-memory recent links in `Browserly/Core/Storage/HistoryManager.swift`.
 
 ## Phase 3: [US1] Full Loop: Intercept to Route
 **Goal**: Intercept URLs, identify the source app, evaluate rules, and launch the correct external browser profile.
