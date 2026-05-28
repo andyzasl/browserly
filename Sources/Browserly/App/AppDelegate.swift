@@ -37,10 +37,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         print("Intercepted URL: \(url) from \(sourceAppBundleId ?? "Unknown")")
         
-        // 1. Get current config
         guard let config = configManager.currentConfig else {
             print("No configuration available. Opening in default system browser.")
             NSWorkspace.shared.open(url)
+            return
+        }
+        
+        // Check if routing is paused
+        if AppState.shared.isPaused {
+            print("Routing is paused. Falling back to default browser.")
+            if let fallbackTarget = config.browsers.first(where: { $0.id == config.defaultBrowserId }) {
+                processLauncher.launch(url: url, in: fallbackTarget)
+            } else {
+                NSWorkspace.shared.open(url)
+            }
             return
         }
         

@@ -3,13 +3,15 @@ import SwiftUI
 @main
 struct BrowserlyApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @StateObject private var appState = AppState.shared
     
     var body: some Scene {
-        MenuBarExtra("Browserly", systemImage: "link") {
-            Text("Browserly Setup Complete")
-            Button("Quit") {
-                NSApplication.shared.terminate(nil)
-            }
+        MenuBarExtra(
+            "Browserly",
+            systemImage: appState.isPaused ? "link.badge.plus" : "link"
+        ) {
+            PopoverView()
         }
+        .menuBarExtraStyle(.window) // Use window style for rich popover interactions
     }
 }

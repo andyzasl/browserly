@@ -49,12 +49,12 @@ We will build the application from the inside out: starting with data models, th
 **Goal**: Build the Menu Bar Popover to view history, pause routing, and quickly switch target browsers.
 **Independent Test**: Click the Menu Bar icon, view captured history, and manually route a link to a different browser.
 
-- [ ] T015 [P] [US2] Create global `UserDefaults` manager for the `isPaused` state in `Browserly/Core/Storage/AppState.swift`.
-- [ ] T016 [US2] Create `HistoryRow` and `BrowserPicker` SwiftUI components in `Browserly/UI/Components/`.
-- [ ] T017 [US2] Build the main `PopoverView` combining the Pause toggle, Browser Picker, and History List in `Browserly/UI/MenuBar/PopoverView.swift`.
-- [ ] T018 [US2] Wire `PopoverView` "Open In..." actions to the `ProcessLauncher` bypassing the `RoutingEngine` in `Browserly/UI/MenuBar/PopoverView.swift`.
-- [ ] T019 [US2] Update `BrowserlyApp.swift` to use `MenuBarExtra` and display the `PopoverView` (handling active/paused icon states).
-- [ ] T020 [US2] Update `AppDelegate` URL interception logic to respect the `AppState.isPaused` flag (fallback to default browser).
+- [x] T015 [P] [US2] Create global `UserDefaults` manager for the `isPaused` state in `Browserly/Core/Storage/AppState.swift`.
+- [x] T016 [US2] Create `HistoryRow` and `BrowserPicker` SwiftUI components in `Browserly/UI/Components/`.
+- [x] T017 [US2] Build the main `PopoverView` combining the Pause toggle, Browser Picker, and History List in `Browserly/UI/MenuBar/PopoverView.swift`.
+- [x] T018 [US2] Wire `PopoverView` "Open In..." actions to the `ProcessLauncher` bypassing the `RoutingEngine` in `Browserly/UI/MenuBar/PopoverView.swift`.
+- [x] T019 [US2] Update `BrowserlyApp.swift` to use `MenuBarExtra` and display the `PopoverView` (handling active/paused icon states).
+- [x] T020 [US2] Update `AppDelegate` URL interception logic to respect the `AppState.isPaused` flag (fallback to default browser).
 
 ## Phase 5: Polish & Cross-Cutting
 **Goal**: Ensure error handling, startup validation, and system integration are solid.
