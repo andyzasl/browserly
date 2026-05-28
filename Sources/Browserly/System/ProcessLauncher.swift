@@ -23,13 +23,20 @@ public class ProcessLauncher {
         guard let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: target.bundleId) else {
             print("Failed to find app for bundle ID: \(target.bundleId)")
             // Fallback to standard system open if app is missing
-            NSWorkspace.shared.open(url)
+            launchStandard(url: url, bundleId: nil)
             return
         }
         
         // Construct path to the executable inside the .app bundle
         let appName = appURL.deletingPathExtension().lastPathComponent
         let executablePath = appURL.appendingPathComponent("Contents/MacOS/\(appName)").path
+        
+        // Verify executable exists
+        if !FileManager.default.fileExists(atPath: executablePath) {
+            print("Executable not found at path: \(executablePath)")
+            launchStandard(url: url, bundleId: nil)
+            return
+        }
         
         var arguments = [String]()
         
@@ -52,13 +59,13 @@ public class ProcessLauncher {
         } catch {
             print("Failed to run Process: \(error.localizedDescription)")
             // Fallback
-            launchStandard(url: url, bundleId: target.bundleId)
+            launchStandard(url: url, bundleId: nil)
         }
     }
     
-    private func launchStandard(url: URL, bundleId: String) {
-        guard let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleId) else {
-            print("Failed to find app for bundle ID: \(bundleId), falling back to default.")
+    private func launchStandard(url: URL, bundleId: String?) {
+        guard let bundleId = bundleId, let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleId) else {
+            print("Bundle ID missing or not found, falling back to absolute default.")
             NSWorkspace.shared.open(url)
             return
         }

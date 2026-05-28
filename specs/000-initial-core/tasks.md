@@ -59,6 +59,6 @@ We will build the application from the inside out: starting with data models, th
 ## Phase 5: Polish & Cross-Cutting
 **Goal**: Ensure error handling, startup validation, and system integration are solid.
 
-- [ ] T021 Implement startup validation in `ConfigManager` to block launch with a fatal error dialog if JSON is corrupt in `Browserly/Core/Storage/ConfigManager.swift`.
-- [ ] T022 Ensure graceful fallback in `ProcessLauncher` if the target `bundleId` or profile is missing (route to default system browser) in `Browserly/System/ProcessLauncher.swift`.
-- [ ] T023 Add a setup button in the `PopoverView` that triggers the macOS system dialog to become the default browser using `LSSetDefaultHandlerForURLScheme`.
+- [x] T021 Implement startup validation in `ConfigManager` to block launch with a fatal error dialog if JSON is corrupt in `Browserly/Core/Storage/ConfigManager.swift`.
+- [x] T022 Ensure graceful fallback in `ProcessLauncher` if the target `bundleId` or profile is missing (route to default system browser) in `Browserly/System/ProcessLauncher.swift`.
+- [x] T023 Add a setup button in the `PopoverView` that triggers the macOS system dialog to become the default browser using `LSSetDefaultHandlerForURLScheme`.

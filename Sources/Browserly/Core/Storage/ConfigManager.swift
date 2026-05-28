@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 
 public enum ConfigError: Error {
     case directoryCreationFailed
@@ -51,6 +52,15 @@ public class ConfigManager {
                 self.currentConfig = config
                 return config
             } catch {
+                DispatchQueue.main.async {
+                    let alert = NSAlert()
+                    alert.messageText = "Configuration Error"
+                    alert.informativeText = "The configuration file is corrupted or invalid. Browserly cannot start.\n\nError: \(error.localizedDescription)"
+                    alert.alertStyle = .critical
+                    alert.addButton(withTitle: "Quit")
+                    alert.runModal()
+                    NSApplication.shared.terminate(nil)
+                }
                 throw ConfigError.loadFailed(error)
             }
         }

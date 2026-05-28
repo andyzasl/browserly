@@ -82,11 +82,20 @@ struct PopoverView: View {
             
             // Footer
             HStack {
+                Button("Set Default") {
+                    let bundleId = Bundle.main.bundleIdentifier ?? "com.browserly.app"
+                    LSSetDefaultHandlerForURLScheme("http" as CFString, bundleId as CFString)
+                    LSSetDefaultHandlerForURLScheme("https" as CFString, bundleId as CFString)
+                    print("Attempted to set as default handler for http/https")
+                }
+                .help("Set Browserly as the default system browser")
+                
+                Spacer()
+                
                 Button("Settings...") {
                     // Placeholder for future Settings window
                     print("Open Settings")
                 }
-                Spacer()
                 Button("Quit") {
                     NSApplication.shared.terminate(nil)
                 }
