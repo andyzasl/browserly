@@ -93,8 +93,9 @@ struct PopoverView: View {
                 Spacer()
                 
                 Button("Settings...") {
-                    // Placeholder for future Settings window
-                    print("Open Settings")
+                    if let url = configManager.configDirectoryURL {
+                        NSWorkspace.shared.open(url)
+                    }
                 }
                 Button("Quit") {
                     NSApplication.shared.terminate(nil)

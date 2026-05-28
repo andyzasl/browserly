@@ -17,7 +17,7 @@ public class ConfigManager {
     
     private init() {}
     
-    private var configDirectoryURL: URL? {
+    public var configDirectoryURL: URL? {
         guard let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
             return nil
         }
