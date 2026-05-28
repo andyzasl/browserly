@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Browserly Configuration",
+  "type": "object",
+  "required": ["defaultBrowserId", "browsers", "rules"],
+  "properties": {
+    "defaultBrowserId": {
+      "type": "string",
+      "description": "The ID of the browser to use when no rules match."
+    },
+    "browsers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "bundleId"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "bundleId": { "type": "string", "example": "com.google.chrome" },
+          "profileDirectory": { "type": ["string", "null"] },
+          "isIncognito": { "type": "boolean", "default": false }
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "pattern", "targetBrowserId"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["domain", "regex", "sourceApp"]
+          },
+          "pattern": { "type": "string" },
+          "targetBrowserId": { "type": "string" }
+        }
+      }
+    }
+  }
+}
