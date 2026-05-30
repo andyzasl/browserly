@@ -19,6 +19,12 @@ A smart macOS menu bar app that routes URLs to the right browser based on custom
 
 Download the latest DMG from [GitHub Releases](../../releases), open it, and drag Browserly to your Applications folder.
 
+Since the app is not notarized, macOS will block it on first launch. Remove the quarantine flag:
+
+```bash
+xattr -d -r com.apple.quarantine /Applications/Browserly.app
+```
+
 Or [build from source](#building-from-source).
 
 ## Usage
