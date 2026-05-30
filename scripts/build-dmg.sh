@@ -22,6 +22,7 @@ mkdir -p "$APP_BUNDLE/Contents/Resources"
 
 cp ".build/apple/Products/Release/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/"
 cp "Sources/Browserly/Info.plist" "$APP_BUNDLE/Contents/Info.plist"
+cp "Sources/Browserly/Resources/AppIcon.icns" "$APP_BUNDLE/Contents/Resources/"
 
 # Add Applications symlink for easy installation
 echo "🔗 Adding Applications symlink..."
