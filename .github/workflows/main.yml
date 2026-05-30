@@ -35,7 +35,7 @@ jobs:
         run: swift build -c release
 
       - name: Run Unit Tests
-        run: swift test --xunit-output unit-tests.xml
+        run: swift test --parallel --xunit-output unit-tests.xml
 
       - name: Locate Test Report
         if: always()
