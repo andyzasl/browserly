@@ -5,8 +5,8 @@ public class RoutingEngine {
     public init() {}
     
     /// Evaluates a URL and an optional source app bundle ID against a list of rules.
-    /// Returns the targetBrowserId of the first matching rule, or nil if no rules match.
-    public func evaluate(url: URL, sourceAppBundleId: String?, rules: [Rule]) -> String? {
+    /// Returns a tuple containing the targetBrowserId and the rule name if a match was found.
+    public func evaluate(url: URL, sourceAppBundleId: String?, rules: [Rule]) -> (browserId: String, ruleName: String?)? {
         guard let host = url.host else {
             return nil
         }
@@ -18,13 +18,13 @@ public class RoutingEngine {
             case .domain:
                 // Strict equality check against the host, ignoring case
                 if host.caseInsensitiveCompare(rule.pattern) == .orderedSame {
-                    return rule.targetBrowserId
+                    return (rule.targetBrowserId, rule.name ?? "Domain: \(rule.pattern)")
                 }
                 // Handle optional 'www.' prefix matching if needed
                 if host.hasPrefix("www.") {
                     let hostWithoutWww = String(host.dropFirst(4))
                     if hostWithoutWww.caseInsensitiveCompare(rule.pattern) == .orderedSame {
-                        return rule.targetBrowserId
+                        return (rule.targetBrowserId, rule.name ?? "Domain: \(rule.pattern)")
                     }
                 }
                 
@@ -33,7 +33,7 @@ public class RoutingEngine {
                     let regex = try NSRegularExpression(pattern: rule.pattern, options: [.caseInsensitive])
                     let range = NSRange(location: 0, length: urlString.utf16.count)
                     if regex.firstMatch(in: urlString, options: [], range: range) != nil {
-                        return rule.targetBrowserId
+                        return (rule.targetBrowserId, rule.name ?? "Regex Match")
                     }
                 } catch {
                     print("Invalid regex in rule \(rule.id): \(error.localizedDescription)")
@@ -46,7 +46,7 @@ public class RoutingEngine {
                     continue
                 }
                 if sourceApp.caseInsensitiveCompare(rule.pattern) == .orderedSame {
-                    return rule.targetBrowserId
+                    return (rule.targetBrowserId, rule.name ?? "Source App: \(rule.pattern)")
                 }
             }
         }

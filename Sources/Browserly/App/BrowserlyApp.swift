@@ -3,8 +3,8 @@ import SwiftUI
 @main
 struct BrowserlyApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @StateObject private var appState = AppState.shared
-    
+    private var appState = AppState.shared
+
     var body: some Scene {
         MenuBarExtra(
             "Browserly",

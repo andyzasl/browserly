@@ -1,9 +1,22 @@
+import Observation
+import Foundation
 import SwiftUI
 
-public class AppState: ObservableObject {
+@Observable
+public class AppState {
     public static let shared = AppState()
     
-    @AppStorage("isPaused") public var isPaused: Bool = false
+    public var isPaused: Bool {
+        get {
+            access(keyPath: \.isPaused)
+            return UserDefaults.standard.bool(forKey: "isPaused")
+        }
+        set {
+            withMutation(keyPath: \.isPaused) {
+                UserDefaults.standard.set(newValue, forKey: "isPaused")
+            }
+        }
+    }
     
     private init() {}
 }

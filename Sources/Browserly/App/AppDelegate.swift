@@ -9,12 +9,48 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let historyManager = HistoryManager.shared
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Load configuration on launch
+        let currentBundleId = Bundle.main.bundleIdentifier
+        let currentPID = ProcessInfo.processInfo.processIdentifier
+        let executableName = (CommandLine.arguments[0] as NSString).lastPathComponent
+        
+        // 1. Check if another instance is already running
+        let runningApps = NSWorkspace.shared.runningApplications
+        let otherInstances = runningApps.filter { app in
+            if app.processIdentifier == currentPID { return false }
+            
+            if let bundleId = currentBundleId, let appBundleId = app.bundleIdentifier {
+                return bundleId == appBundleId
+            }
+            
+            // Fallback for non-bundled execution: check executable name
+            return app.localizedName == executableName
+        }
+        
+        if !otherInstances.isEmpty {
+            print("Another instance of Browserly is already running.")
+            
+            // Forward any CLI arguments to the running instance
+            let arguments = CommandLine.arguments
+            for i in 1..<arguments.count {
+                let arg = arguments[i]
+                if let url = URL(string: arg), url.scheme == "http" || url.scheme == "https" {
+                    if let targetApp = otherInstances.first {
+                        print("Forwarding URL to running instance (PID \(targetApp.processIdentifier)): \(url)")
+                        forwardURLToRunningInstance(url, targetPID: targetApp.processIdentifier)
+                    }
+                    break
+                }
+            }
+            
+            // Exit immediately
+            NSApplication.shared.terminate(nil)
+            return
+        }
+
+        // 2. Load configuration on launch
         do {
             _ = try configManager.loadOrCreateConfig()
         } catch {
-            // For MVP, if config fails to load, we just print. 
-            // Phase 5 will add the fatal error dialog.
             print("Failed to load config: \(error)")
         }
         
@@ -24,6 +60,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             forEventClass: AEEventClass(kInternetEventClass),
             andEventID: AEEventID(kAEGetURL)
         )
+        
+        // Check for URL passed via command line arguments (first instance only)
+        processCommandLineArguments()
+    }
+    
+    private func forwardURLToRunningInstance(_ url: URL, targetPID: pid_t) {
+        let appleEvent = NSAppleEventDescriptor(
+            eventClass: AEEventClass(kInternetEventClass),
+            eventID: AEEventID(kAEGetURL),
+            targetDescriptor: NSAppleEventDescriptor(processIdentifier: targetPID),
+            returnID: AEReturnID(kAutoGenerateReturnID),
+            transactionID: AETransactionID(kAnyTransactionID)
+        )
+        appleEvent.setParam(NSAppleEventDescriptor(string: url.absoluteString), forKeyword: AEKeyword(keyDirectObject))
+        
+        _ = try? appleEvent.sendEvent(options: [.noReply], timeout: 0)
+    }
+    
+    private func processCommandLineArguments() {
+        let arguments = CommandLine.arguments
+        // Index 0 is the executable path, look for arguments starting at index 1
+        for i in 1..<arguments.count {
+            let arg = arguments[i]
+            if let url = URL(string: arg), url.scheme == "http" || url.scheme == "https" {
+                print("Processing URL from command line: \(url)")
+                route(url: url, sourceAppBundleId: "com.apple.Terminal")
+                break // Only process the first valid URL found
+            }
+        }
     }
     
     @objc func handleURLEvent(_ event: NSAppleEventDescriptor, withReplyEvent replyEvent: NSAppleEventDescriptor) {
@@ -36,7 +101,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         print("Intercepted URL: \(url) from \(sourceAppBundleId ?? "Unknown")")
-        
+        route(url: url, sourceAppBundleId: sourceAppBundleId)
+    }
+    
+    private func route(url: URL, sourceAppBundleId: String?) {
         guard let config = configManager.currentConfig else {
             print("No configuration available. Opening in default system browser.")
             NSWorkspace.shared.open(url)
@@ -55,7 +123,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         // 2. Evaluate rules
-        let targetBrowserId = routingEngine.evaluate(url: url, sourceAppBundleId: sourceAppBundleId, rules: config.rules) ?? config.defaultBrowserId
+        let evaluationResult = routingEngine.evaluate(url: url, sourceAppBundleId: sourceAppBundleId, rules: config.rules)
+        let targetBrowserId = evaluationResult?.browserId ?? config.defaultBrowserId
+        let matchedRuleName = evaluationResult?.ruleName ?? "Default (No Match)"
         
         // 3. Find target browser info
         let targetBrowser = config.browsers.first(where: { $0.id == targetBrowserId })
@@ -68,7 +138,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let historyItem = HistoryItem(
                 url: url,
                 sourceAppBundleId: sourceAppBundleId,
-                routedToBrowserId: target.id
+                routedToBrowserId: target.id,
+                matchedRuleName: matchedRuleName
             )
             historyManager.addLink(historyItem)
         } else {

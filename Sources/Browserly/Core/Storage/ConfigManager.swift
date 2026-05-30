@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import AppKit
 
 public enum ConfigError: Error {
@@ -8,6 +9,7 @@ public enum ConfigError: Error {
     case invalidData
 }
 
+@Observable
 public class ConfigManager {
     public static let shared = ConfigManager()
     private let fileManager = FileManager.default
@@ -43,14 +45,14 @@ public class ConfigManager {
             }
         }
         
+        let config: AppConfiguration
         // If file exists, load it
         if fileManager.fileExists(atPath: fileURL.path) {
             do {
                 let data = try Data(contentsOf: fileURL)
                 let decoder = JSONDecoder()
-                let config = try decoder.decode(AppConfiguration.self, from: data)
+                config = try decoder.decode(AppConfiguration.self, from: data)
                 self.currentConfig = config
-                return config
             } catch {
                 DispatchQueue.main.async {
                     let alert = NSAlert()
@@ -63,13 +65,17 @@ public class ConfigManager {
                 }
                 throw ConfigError.loadFailed(error)
             }
+        } else {
+            // File doesn't exist, create default
+            config = generateDefaultConfig()
+            try saveConfig(config)
+            self.currentConfig = config
         }
         
-        // File doesn't exist, create default
-        let defaultConfig = generateDefaultConfig()
-        try saveConfig(defaultConfig)
-        self.currentConfig = defaultConfig
-        return defaultConfig
+        // Always sync with system on startup to detect new browsers
+        syncBrowsersWithSystem()
+        
+        return self.currentConfig ?? config
     }
     
     public func saveConfig(_ config: AppConfiguration) throws {
@@ -88,20 +94,77 @@ public class ConfigManager {
         }
     }
     
+    /// Detects new browsers installed on the system and adds them to the configuration.
+    public func syncBrowsersWithSystem() {
+        guard var config = currentConfig else { return }
+        let detector = BrowserDetector()
+        let bundleIds = detector.discoverInstalledBrowsers()
+        
+        var updated = false
+        for bundleId in bundleIds {
+            // Only add if it doesn't exist yet
+            if !config.browsers.contains(where: { $0.bundleId == bundleId }) {
+                let name = detector.getAppName(for: bundleId) ?? bundleId
+                // Generate a stable ID from the bundle ID
+                let id = bundleId.lowercased().replacingOccurrences(of: ".", with: "-")
+                let target = TargetBrowser(id: id, name: name, bundleId: bundleId)
+                config.browsers.append(target)
+                updated = true
+                print("Detected new browser: \(name) (\(bundleId))")
+            }
+        }
+        
+        if updated {
+            try? saveConfig(config)
+        }
+    }
+    
+    /// Updates the default browser ID and saves the configuration.
+    public func updateDefaultBrowser(id: String) {
+        guard var config = currentConfig else { return }
+        if config.defaultBrowserId != id {
+            config.defaultBrowserId = id
+            try? saveConfig(config)
+            print("Default browser updated to: \(id)")
+        }
+    }
+    
     private func generateDefaultConfig() -> AppConfiguration {
-        // Find Safari as a safe fallback. If not found, create a dummy ID.
-        let defaultBrowserId = "safari-default"
-        let safariBrowser = TargetBrowser(
-            id: defaultBrowserId,
-            name: "Safari",
-            bundleId: "com.apple.Safari",
-            profileDirectory: nil,
-            isIncognito: false
-        )
+        let detector = BrowserDetector()
+        let bundleIds = detector.discoverInstalledBrowsers()
+        
+        var browsers: [TargetBrowser] = []
+        var defaultBrowserId = ""
+        
+        for bundleId in bundleIds {
+            let name = detector.getAppName(for: bundleId) ?? bundleId
+            let id = bundleId.lowercased().replacingOccurrences(of: ".", with: "-")
+            let target = TargetBrowser(id: id, name: name, bundleId: bundleId)
+            browsers.append(target)
+            
+            // Prefer Safari as the initial default
+            if bundleId == "com.apple.Safari" {
+                defaultBrowserId = id
+            }
+        }
+        
+        // Fallback if Safari wasn't found or nothing found
+        if defaultBrowserId.isEmpty && !browsers.isEmpty {
+            defaultBrowserId = browsers[0].id
+        } else if browsers.isEmpty {
+            defaultBrowserId = "safari-default"
+            browsers.append(TargetBrowser(
+                id: defaultBrowserId,
+                name: "Safari",
+                bundleId: "com.apple.Safari",
+                profileDirectory: nil,
+                isIncognito: false
+            ))
+        }
         
         return AppConfiguration(
             defaultBrowserId: defaultBrowserId,
-            browsers: [safariBrowser],
+            browsers: browsers,
             rules: []
         )
     }
