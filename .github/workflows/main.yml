@@ -21,6 +21,9 @@ jobs:
   build-and-test:
     name: Build and Test
     runs-on: macos-14
+    permissions:
+      contents: write
+      checks: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -32,18 +35,20 @@ jobs:
         run: swift build -c release
 
       - name: Run Unit Tests
-        run: swift test --xunit-output unit-tests.xml
+        run: swift test --xunit-output ${{ github.workspace }}/unit-tests.xml
 
       - name: Locate Test Report
         if: always()
-        run: find . -name "unit-tests.xml"
+        run: |
+          ls -l ${{ github.workspace }}/unit-tests.xml || true
+          find . -name "unit-tests.xml"
 
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: always()
         with:
           name: Unit Tests Result
-          path: "**/unit-tests.xml"
+          path: "${{ github.workspace }}/unit-tests.xml"
           reporter: java-junit
 
       - name: Run Standalone Validation
