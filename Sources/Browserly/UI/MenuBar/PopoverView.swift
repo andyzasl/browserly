@@ -22,6 +22,13 @@ struct PopoverView: View {
                     Toggle("Pause Routing", isOn: $bAppState.isPaused)
                         .toggleStyle(.switch)
                 }
+
+                Toggle("Launch at Login", isOn: $bAppState.launchAtLogin)
+                    .toggleStyle(.checkbox)
+                    .onChange(of: bAppState.launchAtLogin) {
+                        (NSApplication.shared.delegate as? AppDelegate)?.syncLaunchAtLogin()
+                    }
+
                 if let config = configManager.currentConfig {
                     BrowserPicker(
                         title: "Default Fallback",

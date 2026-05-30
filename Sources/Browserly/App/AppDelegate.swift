@@ -10,7 +10,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let historyManager = HistoryManager.shared
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        setupLaunchAtLogin()
+        syncLaunchAtLogin()
         
         let currentBundleId = Bundle.main.bundleIdentifier
         let currentPID = ProcessInfo.processInfo.processIdentifier
@@ -68,20 +68,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         processCommandLineArguments()
     }
     
-    private func setupLaunchAtLogin() {
+    public func syncLaunchAtLogin() {
         // Only attempt this if we are running as a bundled app
         guard Bundle.main.bundleIdentifier != nil else { return }
         
-        do {
-            if #available(macOS 13.0, *) {
-                // Modern API for macOS 13+
-                if SMAppService.main.status == .notRegistered {
-                    try SMAppService.main.register()
+        let shouldBeRegistered = AppState.shared.launchAtLogin
+        
+        if #available(macOS 13.0, *) {
+            let service = SMAppService.mainApp
+            do {
+                if shouldBeRegistered && service.status != .enabled {
+                    try service.register()
                     print("Registered for launch at login.")
+                } else if !shouldBeRegistered && service.status == .enabled {
+                    try service.unregister()
+                    print("Unregistered from launch at login.")
                 }
+            } catch {
+                print("Failed to sync launch at login: \(error)")
             }
-        } catch {
-            print("Failed to register for launch at login: \(error)")
         }
     }
     

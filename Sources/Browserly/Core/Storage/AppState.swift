@@ -17,6 +17,18 @@ public class AppState {
             }
         }
     }
+
+    public var launchAtLogin: Bool {
+        get {
+            access(keyPath: \.launchAtLogin)
+            return UserDefaults.standard.bool(forKey: "launchAtLogin")
+        }
+        set {
+            withMutation(keyPath: \.launchAtLogin) {
+                UserDefaults.standard.set(newValue, forKey: "launchAtLogin")
+            }
+        }
+    }
     
     private init() {}
 }
