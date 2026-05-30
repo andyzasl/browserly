@@ -1,12 +1,7 @@
 name: "CodeQL Analysis"
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-  schedule:
-    - cron: '30 4 * * 1' # Run weekly on Monday at 4:30 AM
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

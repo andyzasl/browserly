@@ -34,12 +34,16 @@ jobs:
       - name: Run Unit Tests
         run: swift test --xunit-output unit-tests.xml
 
+      - name: Locate Test Report
+        if: always()
+        run: find . -name "unit-tests.xml"
+
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: always()
         with:
           name: Unit Tests Result
-          path: unit-tests.xml
+          path: "**/unit-tests.xml"
           reporter: java-junit
 
       - name: Run Standalone Validation
