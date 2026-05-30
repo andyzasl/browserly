@@ -70,23 +70,34 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     public func syncLaunchAtLogin() {
         // Only attempt this if we are running as a bundled app
-        guard Bundle.main.bundleIdentifier != nil else { return }
+        guard let bundleId = Bundle.main.bundleIdentifier else { 
+            print("Skipping LaunchAtLogin sync: Not running as a bundled app (no Bundle Identifier).")
+            return 
+        }
         
         let shouldBeRegistered = AppState.shared.launchAtLogin
+        print("Syncing LaunchAtLogin for \(bundleId). Target state: \(shouldBeRegistered)")
         
         if #available(macOS 13.0, *) {
             let service = SMAppService.mainApp
+            print("Current SMAppService status: \(service.status.rawValue) (0=notRegistered, 1=enabled, 2=requiresApproval, 3=notFound)")
+            
             do {
                 if shouldBeRegistered && service.status != .enabled {
                     try service.register()
-                    print("Registered for launch at login.")
-                } else if !shouldBeRegistered && service.status == .enabled {
+                    print("Successfully registered for launch at login. New status: \(service.status.rawValue)")
+                } else if !shouldBeRegistered && service.status != .notRegistered {
                     try service.unregister()
-                    print("Unregistered from launch at login.")
+                    print("Successfully unregistered from launch at login. New status: \(service.status.rawValue)")
+                } else {
+                    print("No action required. Status already matches target.")
                 }
             } catch {
-                print("Failed to sync launch at login: \(error)")
+                print("💥 Failed to sync launch at login. Error: \(error.localizedDescription)")
+                print("Detailed error: \(error)")
             }
+        } else {
+            print("LaunchAtLogin requires macOS 13.0+")
         }
     }
     
