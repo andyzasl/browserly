@@ -18,7 +18,11 @@ let package = Package(
         .executableTarget(
             name: "Browserly",
             dependencies: [],
-            path: "Sources/Browserly"
+            path: "Sources/Browserly",
+            exclude: ["Info.plist"],
+            resources: [
+                .process("Resources")
+            ]
         ),
         .testTarget(
             name: "BrowserlyTests",
