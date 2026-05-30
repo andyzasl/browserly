@@ -1,24 +1,69 @@
 # Browserly
 
-Browserly is a smart browser router for macOS. It intercepts URLs and opens them in the appropriate browser based on rules you define.
+A smart macOS menu bar app that routes URLs to the right browser based on custom rules.
+
+<p align="center">
+  <img src="docs/images/screenshot.png" alt="Browserly menu bar popover" width="600">
+</p>
+
+## Features
+
+- **Domain rules** — route `github.com` to Chrome, `twitter.com` to Safari
+- **Regex rules** — match any part of a URL with regular expressions
+- **Source app rules** — route based on which app opened the link (e.g. Slack → Work Chrome)
+- **Browser profiles** — target specific Chrome/Edge/Brave profiles
+- **Incognito mode** — open matched URLs in private windows
+- **Menu bar app** — lives in the menu bar, no Dock icon
+
+## Install
+
+Download the latest DMG from [GitHub Releases](../../releases), open it, and drag Browserly to your Applications folder.
+
+Or [build from source](#building-from-source).
+
+## Usage
+
+1. Open Browserly — it appears in your menu bar.
+2. Click the menu bar icon and press **Set Default** to register as your system's default browser.
+3. Check the **Launch at Login** box to automatically start Browserly when you turn on your Mac.
+4. Edit your [configuration](#configuration) to define routing rules.
+5. All intercepted URLs are now routed based on your rules.
+
+### Try without changing your default browser
+
+Pass a URL directly to test routing without any system registration:
+
+```bash
+swift run Browserly "https://github.com"
+```
+
+The app processes the URL, opens the matched browser, and stays in the menu bar.
 
 ## Configuration
 
-Browserly stores its configuration in a JSON file.
+Config file location:
 
-### Config File Location
+```
+~/Library/Application Support/Browserly/config.json
+```
 
-The configuration file is located at:
-`~/Library/Application Support/Browserly/config.json`
+### Rule types
 
-### Configuration Structure
+| Type | Matches against | Example pattern |
+|---|---|---|
+| `domain` | URL hostname | `github.com` |
+| `regex` | Full URL | `.*[?&]debug=true.*` |
+| `sourceApp` | Sending app's bundle ID | `com.tinyspeck.slackmacgap` |
 
-The configuration consists of three main parts:
-1. `defaultBrowserId`: The ID of the browser to use when no rules match.
-2. `browsers`: A list of browsers installed on your system.
-3. `rules`: Logic to route URLs to specific browsers.
+### Browser options
 
-### Example Configuration
+| Field | Description |
+|---|---|
+| `profileDirectory` | Target a specific Chromium profile folder (e.g. `Profile 1`) |
+| `isIncognito` | Set `true` to open in a private/incognito window |
+
+<details>
+<summary>Full configuration example</summary>
 
 ```json
 {
@@ -70,42 +115,15 @@ The configuration consists of three main parts:
 }
 ```
 
-### Rule Types
+</details>
 
-- **domain**: Matches the hostname of the URL (e.g., `google.com`).
-- **regex**: Uses a regular expression to match against the full URL.
-- **sourceApp**: Matches against the Bundle Identifier of the application that sent the URL (e.g., `com.tinyspeck.slackmacgap` for Slack).
+## Building from Source
 
-### Browser Options
-
-- `profileDirectory`: (Optional) Specify a profile folder name for Chromium-based browsers (Chrome, Edge, Brave).
-- `isIncognito`: Set to `true` to open the URL in a private/incognito window.
-
-## Testing without changing System Default
-
-The easiest way to test Browserly's routing logic is to pass a URL directly to the app via `swift run`. This simulates an interception without needing any installation or registration:
+Requires Swift 5.9+ and macOS 14 (Sonoma) or later.
 
 ```bash
-# Replace 'google.com' with the URL you want to test
-swift run Browserly "https://google.com"
+swift build                      # debug build
+swift build -c release           # release build
+swift Tests/Validate.swift       # standalone routing validation (no Xcode needed)
+swift test                       # full test suite (requires Xcode)
 ```
-
-The app will start, process the URL based on your rules, launch the appropriate browser, and then remain active in your menu bar.
-
-### Manual Injection (While App is Running)
-If the app is already running, you can send a test URL using the macOS `open` command:
-
-### Standalone Validation (No Xcode required)
-
-If you are in an environment without a full Xcode installation (e.g., using only Command Line Tools), you can run a standalone validation of the routing logic:
-
-```bash
-swift Tests/Validate.swift
-```
-
-## Usage
-
-1. Open Browserly.
-2. Click the "Set Default" button in the menu bar popover to register Browserly as your system's default browser.
-3. Edit `~/Library/Application Support/Browserly/config.json` to customize your routing rules.
-4. Restart Browserly to apply changes (or wait for the next URL intercept).
