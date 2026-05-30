@@ -35,20 +35,24 @@ jobs:
         run: swift build -c release
 
       - name: Run Unit Tests
-        run: swift test --xunit-output ${{ github.workspace }}/unit-tests.xml
+        run: swift test --xunit-output unit-tests.xml
 
       - name: Locate Test Report
         if: always()
         run: |
-          ls -l ${{ github.workspace }}/unit-tests.xml || true
+          echo "Listing root directory:"
+          ls -R . | grep xml || true
+          echo "Searching for unit-tests.xml:"
           find . -name "unit-tests.xml"
+          echo "Searching for any .xml files:"
+          find . -name "*.xml"
 
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: always()
         with:
           name: Unit Tests Result
-          path: "${{ github.workspace }}/unit-tests.xml"
+          path: "**/*.xml"
           reporter: java-junit
 
       - name: Run Standalone Validation
