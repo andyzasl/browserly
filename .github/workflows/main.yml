@@ -28,19 +28,18 @@ jobs:
       - name: Run Performance Benchmarks
         run: swift Tests/Performance.swift
 
-      - name: Archive Artifacts
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Build DMG
+        if startsWith(github.ref, 'refs/tags/v')
         run: |
-          mkdir -p build-output
-          cp .build/release/Browserly build-output/
-          cd build-output && zip -r ../Browserly-macOS.zip .
+          chmod +x scripts/build-dmg.sh
+          ./scripts/build-dmg.sh
 
-      - name: Upload Artifacts
+      - name: Upload DMG Artifact
         if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
         with:
-          name: Browserly-Binary
-          path: Browserly-macOS.zip
+          name: Browserly-DMG
+          path: Browserly.dmg
 
   release:
     name: Create Release
@@ -56,12 +55,12 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: Browserly-Binary
+          name: Browserly-DMG
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: Browserly-macOS.zip
+          files: Browserly.dmg
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

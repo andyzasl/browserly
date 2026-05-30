@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import ServiceManagement
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     
@@ -9,6 +10,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let historyManager = HistoryManager.shared
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        setupLaunchAtLogin()
+        
         let currentBundleId = Bundle.main.bundleIdentifier
         let currentPID = ProcessInfo.processInfo.processIdentifier
         let executableName = (CommandLine.arguments[0] as NSString).lastPathComponent
@@ -65,6 +68,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         processCommandLineArguments()
     }
     
+    private func setupLaunchAtLogin() {
+        // Only attempt this if we are running as a bundled app
+        guard Bundle.main.bundleIdentifier != nil else { return }
+        
+        do {
+            if #available(macOS 13.0, *) {
+                // Modern API for macOS 13+
+                if SMAppService.main.status == .notRegistered {
+                    try SMAppService.main.register()
+                    print("Registered for launch at login.")
+                }
+            }
+        } catch {
+            print("Failed to register for launch at login: \(error)")
+        }
+    }
+    
     private func forwardURLToRunningInstance(_ url: URL, targetPID: pid_t) {
         let appleEvent = NSAppleEventDescriptor(
             eventClass: AEEventClass(kInternetEventClass),
@@ -75,6 +95,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
         appleEvent.setParam(NSAppleEventDescriptor(string: url.absoluteString), forKeyword: AEKeyword(keyDirectObject))
         
+        // Use the older carbon-style send call or modern Workspace open
+        // For local forwarding to our own bundleId, sending a simple event is best.
         _ = try? appleEvent.sendEvent(options: [.noReply], timeout: 0)
     }
     
