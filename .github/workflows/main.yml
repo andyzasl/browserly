@@ -29,7 +29,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Select Swift Version
-        run: swift --version
+        run: |
+          swift --version
+          swift test --help
 
       - name: Build App
         run: swift build -c release
@@ -40,12 +42,12 @@ jobs:
       - name: Locate Test Report
         if: always()
         run: |
-          echo "Listing root directory:"
-          ls -R . | grep xml || true
-          echo "Searching for unit-tests.xml:"
-          find . -name "unit-tests.xml"
-          echo "Searching for any .xml files:"
+          echo "Searching for unit-tests.xml in current directory:"
+          ls -l unit-tests.xml || echo "Not found in root"
+          echo "Searching for any .xml files in the entire workspace:"
           find . -name "*.xml"
+          echo "Listing .build directory contents (recursive):"
+          ls -R .build | grep .xml || echo "No XMLs in .build"
 
       - name: Test Report
         uses: dorny/test-reporter@v1
