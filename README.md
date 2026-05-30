@@ -8,6 +8,8 @@ A smart macOS menu bar app that routes URLs to the right browser based on custom
 
 ## Features
 
+- **Universal Binary** — runs natively on both **Apple Silicon (M1/M2/M3)** and **Intel** Macs
+- **Dark Mode Native** — fully supports macOS system appearance changes
 - **Domain rules** — route `github.com` to Chrome, `twitter.com` to Safari
 - **Regex rules** — match any part of a URL with regular expressions
 - **Source app rules** — route based on which app opened the link (e.g. Slack → Work Chrome)
@@ -17,7 +19,7 @@ A smart macOS menu bar app that routes URLs to the right browser based on custom
 
 ## Install
 
-Download the latest DMG from [GitHub Releases](../../releases), open it, and drag Browserly to your Applications folder.
+Download the latest **Universal DMG** from [GitHub Releases](../../releases), open it, and drag Browserly to your Applications folder.
 
 Since the app is not notarized, macOS will block it on first launch. Remove the quarantine flag:
 

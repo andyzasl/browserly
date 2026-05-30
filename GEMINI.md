@@ -5,6 +5,8 @@ Auto-generated from all feature plans. Last updated: 2026-05-29
 ## Active Technologies
 
 - Swift 5.9+ + AppKit, SwiftUI, Foundation (000-initial-core)
+- Universal Binary Architecture (arm64 + x86_64 support)
+- Native Dark Mode Support
 
 ## Project Structure
 
@@ -29,9 +31,10 @@ Swift 5.9+: Follow standard Ray Wenderlich/Apple conventions. Use trailing closu
 
 - 000-initial-core: Added Swift 5.9+ + AppKit, SwiftUI, Foundation
 - 004-browser-profile-integration: Implemented dynamic browser detection on startup and configuration persistence.
-- Testing: Added comprehensive Regex routing tests, ConfigManager observability tests, and Incognito mode verification tests.
-- System: Refactored ProcessLauncher for better testability of Chromium-based browser launching.
-- Documentation: Added README.md with configuration snippets and usage guide.
+- Incognito & History: Added robust incognito mode launching and persistent link history with full test coverage.
+- Build System: Switched to **Universal Binary** builds (Apple Silicon + Intel support) and resolved SPM resource warnings.
+- CI/CD: Automated GitHub Actions with native UI test reporting and manual CodeQL scanning.
+- Documentation: Updated README and GEMINI.md with new architectural features.
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
