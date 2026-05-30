@@ -1,0 +1,67 @@
+name: Browserly CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: macos-14
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Select Swift Version
+        run: swift --version
+
+      - name: Build App
+        run: swift build -c release
+
+      - name: Run Standalone Validation
+        run: swift Tests/Validate.swift
+
+      - name: Run Performance Benchmarks
+        run: swift Tests/Performance.swift
+
+      - name: Archive Artifacts
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          mkdir -p build-output
+          cp .build/release/Browserly build-output/
+          cd build-output && zip -r ../Browserly-macOS.zip .
+
+      - name: Upload Artifacts
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: Browserly-Binary
+          path: Browserly-macOS.zip
+
+  release:
+    name: Create Release
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: Browserly-Binary
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Browserly-macOS.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
