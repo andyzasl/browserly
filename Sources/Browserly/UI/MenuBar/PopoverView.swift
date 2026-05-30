@@ -124,6 +124,13 @@ struct PopoverView: View {
                     LSSetDefaultHandlerForURLScheme("https" as CFString, bundleId as CFString)
                 }
                 .help("Set Browserly as the default system browser")
+                
+                Button("GitHub") {
+                    if let url = URL(string: "https://github.com/andyzasl/browserly") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+                .help("Visit Browserly on GitHub")
 
                 Spacer()
 
