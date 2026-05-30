@@ -23,6 +23,10 @@ mkdir -p "$APP_BUNDLE/Contents/Resources"
 cp ".build/apple/Products/Release/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/"
 cp "Sources/Browserly/Info.plist" "$APP_BUNDLE/Contents/Info.plist"
 
+# Add Applications symlink for easy installation
+echo "🔗 Adding Applications symlink..."
+ln -s /Applications "$STAGING_DIR/Applications"
+
 # Create DMG
 echo "💿 Creating DMG..."
 rm -f "$DMG_NAME"
