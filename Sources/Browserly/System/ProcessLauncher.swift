@@ -8,7 +8,7 @@ public class ProcessLauncher {
     /// Launches the given URL in the specified target browser.
     public func launch(url: URL, in target: TargetBrowser) {
         // If it's a Chromium browser with specific flags
-        if target.bundleId.contains("chrome") || target.bundleId.contains("brave") || target.bundleId.contains("msedge") {
+        if isChromium(bundleId: target.bundleId) {
             if target.profileDirectory != nil || target.isIncognito {
                 launchChromium(url: url, target: target)
                 return
@@ -17,6 +17,29 @@ public class ProcessLauncher {
         
         // Standard launch via NSWorkspace
         launchStandard(url: url, bundleId: target.bundleId)
+    }
+
+    internal func isChromium(bundleId: String) -> Bool {
+        let chromiumIds = ["com.google.chrome", "org.chromium.chromium", "com.brave.browser", "com.microsoft.edgemac"]
+        return chromiumIds.contains { bundleId.lowercased().contains($0.lowercased()) } || 
+               bundleId.lowercased().contains("chrome") || 
+               bundleId.lowercased().contains("brave") || 
+               bundleId.lowercased().contains("msedge")
+    }
+
+    internal func generateChromiumArguments(url: URL, target: TargetBrowser) -> [String] {
+        var arguments = [String]()
+        
+        if let profile = target.profileDirectory, !profile.isEmpty {
+            arguments.append("--profile-directory=\(profile)")
+        }
+        
+        if target.isIncognito {
+            arguments.append("--incognito")
+        }
+        
+        arguments.append(url.absoluteString)
+        return arguments
     }
     
     private func launchChromium(url: URL, target: TargetBrowser) {
@@ -38,17 +61,7 @@ public class ProcessLauncher {
             return
         }
         
-        var arguments = [String]()
-        
-        if let profile = target.profileDirectory, !profile.isEmpty {
-            arguments.append("--profile-directory=\(profile)")
-        }
-        
-        if target.isIncognito {
-            arguments.append("--incognito")
-        }
-        
-        arguments.append(url.absoluteString)
+        let arguments = generateChromiumArguments(url: url, target: target)
         
         let process = Process()
         process.executableURL = URL(fileURLWithPath: executablePath)

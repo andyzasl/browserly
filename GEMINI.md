@@ -29,7 +29,8 @@ Swift 5.9+: Follow standard Ray Wenderlich/Apple conventions. Use trailing closu
 
 - 000-initial-core: Added Swift 5.9+ + AppKit, SwiftUI, Foundation
 - 004-browser-profile-integration: Implemented dynamic browser detection on startup and configuration persistence.
-- Testing: Added comprehensive Regex routing tests and ConfigManager observability tests.
+- Testing: Added comprehensive Regex routing tests, ConfigManager observability tests, and Incognito mode verification tests.
+- System: Refactored ProcessLauncher for better testability of Chromium-based browser launching.
 - Documentation: Added README.md with configuration snippets and usage guide.
 
 <!-- MANUAL ADDITIONS START -->

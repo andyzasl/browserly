@@ -30,14 +30,21 @@ public class HistoryManager {
     private let fileName = "history.json"
     private let fileManager = FileManager.default
     
+    // Internal for testing
+    internal var storageURL: URL?
+    
     private var fileURL: URL? {
+        if let custom = storageURL { return custom }
+        
         guard let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
             return nil
         }
-        return appSupportURL.appendingPathComponent("Browserly/history.json")
+        let dir = appSupportURL.appendingPathComponent("Browserly")
+        try? fileManager.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir.appendingPathComponent(fileName)
     }
     
-    private init() {}
+    internal init() {} // Internal for testing
     
     public func addLink(_ item: HistoryItem) {
         // If not loaded, we load first to maintain order

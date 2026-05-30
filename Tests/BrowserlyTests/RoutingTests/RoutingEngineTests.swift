@@ -57,4 +57,38 @@ final class RoutingEngineTests: XCTestCase {
         // Match domain if source app doesn't match
         XCTAssertEqual(engine.evaluate(url: url, sourceAppBundleId: "com.apple.Terminal", rules: [rule1, rule2])?.browserId, "safari-personal")
     }
+
+    func testRoutingToIncognitoTarget() {
+        let incognitoBrowser = TargetBrowser(id: "chrome-incognito", name: "Chrome Private", bundleId: "com.google.Chrome", isIncognito: true)
+        let rule = Rule(type: .domain, pattern: "bank.com", targetBrowserId: "chrome-incognito")
+        let config = AppConfiguration(defaultBrowserId: "safari", browsers: [incognitoBrowser], rules: [rule])
+        
+        let url = URL(string: "https://bank.com")!
+        let result = engine.evaluate(url: url, sourceAppBundleId: nil, rules: config.rules)
+        
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.browserId, "chrome-incognito")
+        
+        // Verify that the found browser in config is indeed incognito
+        let targetBrowser = config.browsers.first { $0.id == result?.browserId }
+        XCTAssertNotNil(targetBrowser)
+        XCTAssertTrue(targetBrowser?.isIncognito ?? false)
+    }
+
+    func testNoHostURL() {
+        let rule = Rule(type: .domain, pattern: "example.com", targetBrowserId: "chrome")
+        let url = URL(string: "mailto:user@example.com")!
+        
+        XCTAssertNil(engine.evaluate(url: url, sourceAppBundleId: nil, rules: [rule]))
+    }
+
+    func testInvalidRegexRule() {
+        let invalidRule = Rule(type: .regex, pattern: "[", targetBrowserId: "chrome") // Unclosed bracket
+        let validRule = Rule(type: .domain, pattern: "github.com", targetBrowserId: "work")
+        let url = URL(string: "https://github.com")!
+        
+        // Should skip invalid regex and match the next rule
+        let result = engine.evaluate(url: url, sourceAppBundleId: nil, rules: [invalidRule, validRule])
+        XCTAssertEqual(result?.browserId, "work")
+    }
 }

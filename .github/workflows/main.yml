@@ -31,6 +31,17 @@ jobs:
       - name: Build App
         run: swift build -c release
 
+      - name: Run Unit Tests
+        run: swift test --xunit-output unit-tests.xml
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Unit Tests Result
+          path: unit-tests.xml
+          reporter: java-junit
+
       - name: Run Standalone Validation
         run: swift Tests/Validate.swift
 
