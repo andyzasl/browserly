@@ -13,7 +13,8 @@ A smart macOS menu bar app that routes URLs to the right browser based on custom
 - **Domain rules** — route `github.com` to Chrome, `twitter.com` to Safari
 - **Regex rules** — match any part of a URL with regular expressions
 - **Source app rules** — route based on which app opened the link (e.g. Slack → Work Chrome)
-- **URL Redirector Decoding** — automatically "sees through" Teams, Outlook, Proofpoint, and Slack link wrappers to apply rules to the final destination URL
+- **URL Redirector Decoding** — automatically "sees through" Teams, Outlook, Proofpoint, and Slack link wrappers
+- **Update Notifications** — stay informed when a new version is released on GitHub
 - **Browser profiles** — target specific Chrome/Edge/Brave profiles
 - **Incognito mode** — open matched URLs in private windows
 - **Menu bar app** — lives in the menu bar, no Dock icon

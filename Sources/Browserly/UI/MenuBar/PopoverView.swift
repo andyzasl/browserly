@@ -12,6 +12,28 @@ struct PopoverView: View {
         @Bindable var bAppState = appState
 
         VStack(alignment: .leading, spacing: 0) {
+            // --- UPDATE NOTIFICATION ---
+            if bAppState.isUpdateAvailable {
+                HStack {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .foregroundColor(.blue)
+                    Text("New version available: \(bAppState.latestVersion ?? "")")
+                        .font(.system(size: 12, weight: .medium))
+                    Spacer()
+                    Button("Update") {
+                        if let url = bAppState.updateUrl {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .background(Color.blue.opacity(0.1))
+                Divider()
+            }
+
             // --- HEADER ---
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
@@ -144,10 +166,20 @@ struct PopoverView: View {
                 }
             }
             .padding()
+
+            HStack {
+                Spacer()
+                Text("v\(appState.currentVersion)")
+                    .font(.system(size: 9))
+                    .foregroundColor(.secondary)
+                    .padding(.trailing, 8)
+                    .padding(.bottom, 4)
+            }
         }
         .frame(width: 350)
         .onAppear {
             historyManager.reloadHistory()
+            UpdateManager.shared.checkForUpdates()
         }
     }
 }

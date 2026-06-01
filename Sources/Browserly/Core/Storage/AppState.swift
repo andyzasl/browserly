@@ -30,5 +30,18 @@ public class AppState {
         }
     }
     
+    // Update tracking
+    public var latestVersion: String? = nil
+    public var updateUrl: URL? = nil
+    
+    public var currentVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
+    }
+    
+    public var isUpdateAvailable: Bool {
+        guard let latest = latestVersion else { return false }
+        return latest.compare(currentVersion, options: .numeric) == .orderedDescending
+    }
+    
     private init() {}
 }
