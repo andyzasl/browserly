@@ -66,6 +66,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Check for URL passed via command line arguments (first instance only)
         processCommandLineArguments()
+
+        // Check for updates
+        UpdateManager.shared.checkForUpdates()
     }
     
     public func syncLaunchAtLogin() {
