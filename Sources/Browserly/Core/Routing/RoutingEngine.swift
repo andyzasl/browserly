@@ -7,11 +7,13 @@ public class RoutingEngine {
     /// Evaluates a URL and an optional source app bundle ID against a list of rules.
     /// Returns a tuple containing the targetBrowserId and the rule name if a match was found.
     public func evaluate(url: URL, sourceAppBundleId: String?, rules: [Rule]) -> (browserId: String, ruleName: String?)? {
-        guard let host = url.host else {
+        let decodedURL = URLRedirectDecoder.shared.decode(url)
+        
+        guard let host = decodedURL.host else {
             return nil
         }
         
-        let urlString = url.absoluteString
+        let urlString = decodedURL.absoluteString
         
         for rule in rules {
             switch rule.type {
