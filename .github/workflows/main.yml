@@ -33,6 +33,17 @@ jobs:
           swift --version
           swift test --help
 
+      - name: Inject Version into Info.plist
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [ -z "$VERSION" ]; then
+            VERSION="${{ github.ref_name }}"
+          fi
+          # Strip 'v' prefix if present for Info.plist compatibility
+          VERSION_CLEAN=$(echo $VERSION | sed 's/^v//')
+          echo "Injecting version $VERSION_CLEAN into Info.plist"
+          plutil -replace CFBundleShortVersionString -string "$VERSION_CLEAN" Sources/Browserly/Info.plist
+
       - name: Build App
         run: swift build -c release
 
