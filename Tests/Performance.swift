@@ -54,11 +54,11 @@ for i in 1...100 {
     rules.append(Rule(id: UUID(), name: "Rule \(i)", type: .domain, pattern: "domain-\(i).com", targetBrowserId: "browser-\(i)"))
 }
 // Add a few regex rules at the end to ensure we test the slower path
-rules.append(Rule(id: UUID(), name: "Complex Regex", type: .regex, pattern: ".*telekom.*", targetBrowserId: "chrome"))
+rules.append(Rule(id: UUID(), name: "Complex Regex", type: .regex, pattern: ".*wiki.*", targetBrowserId: "chrome"))
 
 let testURLs = [
     URL(string: "https://domain-50.com/path?query=1")!,
-    URL(string: "https://wiki.telekom.de/display/PAGE")!,
+    URL(string: "https://wiki.example.org/display/PAGE")!,
     URL(string: "https://google.com/search")!, // Will hit default (no match)
     URL(string: "https://domain-99.com")!
 ]

@@ -46,11 +46,58 @@ public struct HistoryItem: Identifiable, Codable {
     }
 }
 
+// Mirror of Sources/Browserly/Core/Routing/URLRedirectDecoder.swift (kept in sync for CI).
+public struct RedirectorRule {
+    public let hostPattern: String
+    public let parameterName: String
+    public func matches(host: String) -> Bool {
+        if hostPattern.hasPrefix("*.") {
+            let suffix = String(hostPattern.dropFirst(2))
+            return host.hasSuffix(suffix) || host == suffix
+        }
+        return host.lowercased() == hostPattern.lowercased()
+    }
+}
+
+public class URLRedirectDecoder {
+    public static let defaultRules: [RedirectorRule] = [
+        RedirectorRule(hostPattern: "statics.teams.cdn.office.net", parameterName: "url"),
+        RedirectorRule(hostPattern: "teams.public.onecdn.static.microsoft", parameterName: "url"),
+        RedirectorRule(hostPattern: "*.safelinks.protection.outlook.com", parameterName: "url"),
+        RedirectorRule(hostPattern: "urldefense.proofpoint.com", parameterName: "u"),
+        RedirectorRule(hostPattern: "slack-redir.net", parameterName: "url")
+    ]
+    public static let shared = URLRedirectDecoder(rules: defaultRules)
+    private var rules: [RedirectorRule]
+    public init(rules: [RedirectorRule] = []) { self.rules = rules }
+    public func decode(_ url: URL, depth: Int = 0) -> URL {
+        guard depth < 3 else { return url }
+        guard let host = url.host else { return url }
+        for rule in rules where rule.matches(host: host) {
+            if let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+               let queryItems = components.queryItems,
+               let targetEncoded = queryItems.first(where: { $0.name == rule.parameterName })?.value {
+                var decodedString = targetEncoded.removingPercentEncoding ?? targetEncoded
+                if host.contains("proofpoint.com") {
+                    decodedString = decodedString
+                        .replacingOccurrences(of: "-3A", with: ":")
+                        .replacingOccurrences(of: "_", with: "/")
+                }
+                if let targetURL = URL(string: decodedString) {
+                    return decode(targetURL, depth: depth + 1)
+                }
+            }
+        }
+        return url
+    }
+}
+
 public class RoutingEngine {
     public init() {}
     public func evaluate(url: URL, sourceAppBundleId: String?, rules: [Rule]) -> (browserId: String, ruleName: String?)? {
-        guard let host = url.host else { return nil }
-        let urlString = url.absoluteString
+        let decodedURL = URLRedirectDecoder.shared.decode(url)
+        guard let host = decodedURL.host else { return nil }
+        let urlString = decodedURL.absoluteString
         for rule in rules {
             switch rule.type {
             case .domain:
@@ -140,6 +187,17 @@ assert(engine.evaluate(url: URL(string: "https://example.com?debug=true")!, sour
 // Test Source App Match
 let appRule = Rule(id: UUID(), type: .sourceApp, pattern: "com.apple.Terminal", targetBrowserId: "terminal")
 assert(engine.evaluate(url: URL(string: "https://link.com")!, sourceAppBundleId: "com.apple.Terminal", rules: [appRule])?.browserId == "terminal", "Source app match failed")
+
+print("🚀 Running Redirect Decoder Tests...")
+
+// Teams ATP Safe Links wrapper on the new onecdn host should decode to the inner URL.
+let teamsWrapped = URL(string: "https://teams.public.onecdn.static.microsoft/evergreen-assets/safelinks/2/atp-safelinks.html?url=https%3A%2F%2Fexample.com%2Fpages%2Fwiki%3FcurrentLanguage%3DEN")!
+let teamsDecoded = URLRedirectDecoder.shared.decode(teamsWrapped)
+assert(teamsDecoded.absoluteString == "https://example.com/pages/wiki?currentLanguage=EN", "Teams onecdn Safe Links decoding failed")
+
+// A domain rule on the inner host must match the wrapped URL (decode happens before routing).
+let wikiRule = Rule(id: UUID(), name: "Wiki", type: .domain, pattern: "example.com", targetBrowserId: "work")
+assert(engine.evaluate(url: teamsWrapped, sourceAppBundleId: nil, rules: [wikiRule])?.browserId == "work", "Routing through Teams onecdn wrapper failed")
 
 print("🚀 Running Incognito Tests...")
 

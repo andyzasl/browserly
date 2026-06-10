@@ -12,9 +12,15 @@ Most enterprise redirectors (Teams, Outlook, Proofpoint, Slack) follow a standar
 | Service | Domain Pattern | Parameter |
 |---------|----------------|-----------|
 | MS Teams | `statics.teams.cdn.office.net` | `url` |
+| MS Teams (onecdn) | `teams.public.onecdn.static.microsoft` | `url` |
 | MS Outlook | `*.safelinks.protection.outlook.com` | `url` |
 | Proofpoint | `urldefense.proofpoint.com` | `u` |
 | Slack | `slack-redir.net` | `url` |
+
+> **Note**: Microsoft serves the same Teams ATP Safe Links wrapper
+> (`/evergreen-assets/safelinks/2/atp-safelinks.html`, `url` parameter) from a
+> newer CDN host, `teams.public.onecdn.static.microsoft`. Both hosts are matched
+> as separate exact rules.
 
 ### Alternatives Considered
 

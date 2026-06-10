@@ -49,6 +49,16 @@ final class URLRedirectDecoderTests: XCTestCase {
         XCTAssertEqual(decodedURL.absoluteString, "https://redirect.net/path?other=foo")
     }
     
+    func testTeamsOneCdnSafelinksDecoding() {
+        // Microsoft moved the Teams ATP Safe Links wrapper to a new CDN host.
+        let decoder = URLRedirectDecoder(rules: URLRedirectDecoder.defaultRules)
+
+        let wrappedURL = URL(string: "https://teams.public.onecdn.static.microsoft/evergreen-assets/safelinks/2/atp-safelinks.html?url=https%3A%2F%2Fexample.com%2Fpages%2Fwiki%3FcurrentLanguage%3DEN")!
+        let decodedURL = decoder.decode(wrappedURL)
+
+        XCTAssertEqual(decodedURL.absoluteString, "https://example.com/pages/wiki?currentLanguage=EN")
+    }
+
     func testRecursiveDecoding() {
         let rule1 = RedirectorRule(hostPattern: "r1.com", parameterName: "u")
         let rule2 = RedirectorRule(hostPattern: "r2.com", parameterName: "target")

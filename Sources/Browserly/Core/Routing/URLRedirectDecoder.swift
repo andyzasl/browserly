@@ -34,6 +34,7 @@ public class URLRedirectDecoder {
     
     public static let defaultRules: [RedirectorRule] = [
         RedirectorRule(hostPattern: "statics.teams.cdn.office.net", parameterName: "url"),
+        RedirectorRule(hostPattern: "teams.public.onecdn.static.microsoft", parameterName: "url"),
         RedirectorRule(hostPattern: "*.safelinks.protection.outlook.com", parameterName: "url"),
         RedirectorRule(hostPattern: "urldefense.proofpoint.com", parameterName: "u"),
         RedirectorRule(hostPattern: "slack-redir.net", parameterName: "url")
