@@ -9,15 +9,13 @@ public class RoutingEngine {
     public func evaluate(url: URL, sourceAppBundleId: String?, rules: [Rule]) -> (browserId: String, ruleName: String?)? {
         let decodedURL = URLRedirectDecoder.shared.decode(url)
         
-        guard let host = decodedURL.host else {
-            return nil
-        }
-        
+        let host = decodedURL.host
         let urlString = decodedURL.absoluteString
         
         for rule in rules {
             switch rule.type {
             case .domain:
+                guard let host = host else { continue }
                 // Strict equality check against the host, ignoring case
                 if host.caseInsensitiveCompare(rule.pattern) == .orderedSame {
                     return (rule.targetBrowserId, rule.name ?? "Domain: \(rule.pattern)")

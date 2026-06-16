@@ -36,7 +36,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let arguments = CommandLine.arguments
             for i in 1..<arguments.count {
                 let arg = arguments[i]
-                if let url = URL(string: arg), url.scheme == "http" || url.scheme == "https" {
+                if let url = URL(string: arg), url.scheme == "http" || url.scheme == "https" || url.scheme == "file" {
                     if let targetApp = otherInstances.first {
                         print("Forwarding URL to running instance (PID \(targetApp.processIdentifier)): \(url)")
                         forwardURLToRunningInstance(url, targetPID: targetApp.processIdentifier)
@@ -69,6 +69,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Check for updates
         UpdateManager.shared.checkForUpdates()
+    }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        let sourceAppBundleId = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        for url in urls {
+            print("Intercepted openURL: \(url) from \(sourceAppBundleId ?? "Unknown")")
+            route(url: url, sourceAppBundleId: sourceAppBundleId)
+        }
     }
     
     public func syncLaunchAtLogin() {
@@ -124,7 +132,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Index 0 is the executable path, look for arguments starting at index 1
         for i in 1..<arguments.count {
             let arg = arguments[i]
-            if let url = URL(string: arg), url.scheme == "http" || url.scheme == "https" {
+            if let url = URL(string: arg), url.scheme == "http" || url.scheme == "https" || url.scheme == "file" {
                 print("Processing URL from command line: \(url)")
                 route(url: url, sourceAppBundleId: "com.apple.Terminal")
                 break // Only process the first valid URL found
