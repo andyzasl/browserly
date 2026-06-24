@@ -154,18 +154,97 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
           name: Browserly-DMG
 
+      - name: Generate Changelog
+        run: |
+          git fetch --tags --force
+          TARGET_VERSION="${{ needs.build-and-test.outputs.version }}"
+          PREV_TAG=$(git tag -l "v*" | grep -v "^${TARGET_VERSION}$" | sort -V | tail -n 1)
+          
+          if [ -z "$PREV_TAG" ]; then
+            COMMIT_RANGE=""
+          else
+            COMMIT_RANGE="${PREV_TAG}..HEAD"
+          fi
+          
+          echo "Generating changelog for range: $COMMIT_RANGE"
+          echo "## Changelog" > changelog.md
+          echo "" >> changelog.md
+          
+          if [ -z "$COMMIT_RANGE" ]; then
+            COMMITS=$(git log --format="%s" || true)
+          else
+            COMMITS=$(git log "$COMMIT_RANGE" --format="%s" || true)
+          fi
+          
+          FEATS=""
+          FIXES=""
+          OTHERS=""
+          
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            if [[ "$line" == "ci: automate tag creation and patch release on successful build"* ]] || [[ "$line" == "ci:"* ]]; then
+              continue
+            fi
+            
+            if [[ "$line" =~ ^feat(\(.*\))?: ]]; then
+              msg=$(echo "$line" | sed -E 's/^feat(\(.*\))?://' | xargs)
+              FEATS="${FEATS}* ${msg}\n"
+            elif [[ "$line" =~ ^fix(\(.*\))?: ]]; then
+              msg=$(echo "$line" | sed -E 's/^fix(\(.*\))?://' | xargs)
+              FIXES="${FIXES}* ${msg}\n"
+            elif [[ "$line" =~ ^(chore|ci|test|refactor|docs|style)(\(.*\))?: ]]; then
+              if [[ "$line" =~ ^refactor(\(.*\))?: ]]; then
+                msg=$(echo "$line" | sed -E 's/^refactor(\(.*\))?://' | xargs)
+                OTHERS="${OTHERS}* ${msg} (refactor)\n"
+              elif [[ "$line" =~ ^docs(\(.*\))?: ]]; then
+                msg=$(echo "$line" | sed -E 's/^docs(\(.*\))?://' | xargs)
+                OTHERS="${OTHERS}* ${msg} (documentation)\n"
+              fi
+            else
+              OTHERS="${OTHERS}* ${line}\n"
+            fi
+          done <<< "$COMMITS"
+          
+          ANY_CHANGES=false
+          if [ -n "$FEATS" ]; then
+            echo "### 🚀 Features" >> changelog.md
+            printf "$FEATS" >> changelog.md
+            echo "" >> changelog.md
+            ANY_CHANGES=true
+          fi
+          
+          if [ -n "$FIXES" ]; then
+            echo "### 🐛 Bug Fixes" >> changelog.md
+            printf "$FIXES" >> changelog.md
+            echo "" >> changelog.md
+            ANY_CHANGES=true
+          fi
+          
+          if [ -n "$OTHERS" ]; then
+            echo "### 🧰 General Changes" >> changelog.md
+            printf "$OTHERS" >> changelog.md
+            echo "" >> changelog.md
+            ANY_CHANGES=true
+          fi
+          
+          if [ "$ANY_CHANGES" = false ]; then
+            echo "No customer-facing changes in this release." >> changelog.md
+          fi
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.build-and-test.outputs.version }}
           name: Release ${{ needs.build-and-test.outputs.version }}
+          body_path: changelog.md
           files: Browserly.dmg
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
