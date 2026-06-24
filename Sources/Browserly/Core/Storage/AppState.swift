@@ -33,6 +33,7 @@ public class AppState {
     // Update tracking
     public var latestVersion: String? = nil
     public var updateUrl: URL? = nil
+    internal var mockCurrentVersion: String? = nil
     
     public var checkForUpdatesEnabled: Bool {
         get {
@@ -62,7 +63,7 @@ public class AppState {
     }
     
     public var currentVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
+        mockCurrentVersion ?? (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0")
     }
     
     public var isUpdateAvailable: Bool {

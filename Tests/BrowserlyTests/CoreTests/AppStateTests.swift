@@ -11,6 +11,7 @@ final class AppStateTests: XCTestCase {
         // Reset defaults for testing
         UserDefaults.standard.removeObject(forKey: "isPaused")
         UserDefaults.standard.removeObject(forKey: "launchAtLogin")
+        appState.mockCurrentVersion = nil
     }
     
     func testIsPausedPersistence() {
@@ -39,10 +40,19 @@ final class AppStateTests: XCTestCase {
         appState.latestVersion = nil
         XCTAssertFalse(appState.isUpdateAvailable)
         
+        // Mock current version to "1.0.8"
+        appState.mockCurrentVersion = "1.0.8"
+        
         appState.latestVersion = "1.0.9"
         XCTAssertTrue(appState.isUpdateAvailable)
         
-        appState.latestVersion = "0.0.0"
+        appState.latestVersion = "1.0.7"
         XCTAssertFalse(appState.isUpdateAvailable)
+        
+        appState.latestVersion = "1.0.8"
+        XCTAssertFalse(appState.isUpdateAvailable)
+        
+        // Reset
+        appState.mockCurrentVersion = nil
     }
 }
