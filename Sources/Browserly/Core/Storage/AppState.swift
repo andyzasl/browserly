@@ -34,6 +34,33 @@ public class AppState {
     public var latestVersion: String? = nil
     public var updateUrl: URL? = nil
     
+    public var checkForUpdatesEnabled: Bool {
+        get {
+            access(keyPath: \.checkForUpdatesEnabled)
+            if UserDefaults.standard.object(forKey: "checkForUpdatesEnabled") == nil {
+                return true
+            }
+            return UserDefaults.standard.bool(forKey: "checkForUpdatesEnabled")
+        }
+        set {
+            withMutation(keyPath: \.checkForUpdatesEnabled) {
+                UserDefaults.standard.set(newValue, forKey: "checkForUpdatesEnabled")
+            }
+        }
+    }
+    
+    public var lastUpdateCheckDate: Date? {
+        get {
+            access(keyPath: \.lastUpdateCheckDate)
+            return UserDefaults.standard.object(forKey: "lastUpdateCheckDate") as? Date
+        }
+        set {
+            withMutation(keyPath: \.lastUpdateCheckDate) {
+                UserDefaults.standard.set(newValue, forKey: "lastUpdateCheckDate")
+            }
+        }
+    }
+    
     public var currentVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
     }

@@ -12,28 +12,6 @@ struct PopoverView: View {
         @Bindable var bAppState = appState
 
         VStack(alignment: .leading, spacing: 0) {
-            // --- UPDATE NOTIFICATION ---
-            if bAppState.isUpdateAvailable {
-                HStack {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .foregroundColor(.blue)
-                    Text("New version available: \(bAppState.latestVersion ?? "")")
-                        .font(.system(size: 12, weight: .medium))
-                    Spacer()
-                    Button("Update") {
-                        if let url = bAppState.updateUrl {
-                            NSWorkspace.shared.open(url)
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.small)
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-                .background(Color.blue.opacity(0.1))
-                Divider()
-            }
-
             // --- HEADER ---
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
@@ -45,11 +23,21 @@ struct PopoverView: View {
                         .toggleStyle(.switch)
                 }
 
-                Toggle("Launch at Login", isOn: $bAppState.launchAtLogin)
-                    .toggleStyle(.checkbox)
-                    .onChange(of: bAppState.launchAtLogin) {
-                        (NSApplication.shared.delegate as? AppDelegate)?.syncLaunchAtLogin()
-                    }
+                HStack(spacing: 16) {
+                    Toggle("Launch at Login", isOn: $bAppState.launchAtLogin)
+                        .toggleStyle(.checkbox)
+                        .onChange(of: bAppState.launchAtLogin) {
+                            (NSApplication.shared.delegate as? AppDelegate)?.syncLaunchAtLogin()
+                        }
+                    
+                    Toggle("Check for Updates", isOn: $bAppState.checkForUpdatesEnabled)
+                        .toggleStyle(.checkbox)
+                        .onChange(of: bAppState.checkForUpdatesEnabled) { oldValue, newValue in
+                            if newValue {
+                                UpdateManager.shared.checkForUpdates()
+                            }
+                        }
+                }
 
                 if let config = configManager.currentConfig {
                     BrowserPicker(
@@ -167,14 +155,34 @@ struct PopoverView: View {
             }
             .padding()
 
-            HStack {
+            HStack(alignment: .center) {
                 Spacer()
+                if bAppState.isUpdateAvailable && bAppState.checkForUpdatesEnabled {
+                    Button(action: {
+                        if let url = bAppState.updateUrl {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(Color.green)
+                                .frame(width: 5, height: 5)
+                            Text("Update Available (v\(bAppState.latestVersion ?? ""))")
+                                .font(.system(size: 9, weight: .semibold))
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.green)
+                    .help("Click to download the latest version")
+                    .padding(.trailing, 6)
+                }
+                
                 Text("v\(appState.currentVersion)")
                     .font(.system(size: 9))
                     .foregroundColor(.secondary)
                     .padding(.trailing, 8)
-                    .padding(.bottom, 4)
             }
+            .padding(.bottom, 4)
         }
         .frame(width: 350)
         .onAppear {

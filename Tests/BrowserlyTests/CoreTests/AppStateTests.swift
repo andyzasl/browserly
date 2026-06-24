@@ -34,4 +34,15 @@ final class AppStateTests: XCTestCase {
         
         XCTAssertTrue(UserDefaults.standard.bool(forKey: "launchAtLogin"))
     }
+    
+    func testIsUpdateAvailable() {
+        appState.latestVersion = nil
+        XCTAssertFalse(appState.isUpdateAvailable)
+        
+        appState.latestVersion = "1.0.9"
+        XCTAssertTrue(appState.isUpdateAvailable)
+        
+        appState.latestVersion = "0.0.0"
+        XCTAssertFalse(appState.isUpdateAvailable)
+    }
 }

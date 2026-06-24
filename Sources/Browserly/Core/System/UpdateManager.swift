@@ -12,13 +12,32 @@ public class UpdateManager {
         let html_url: String
     }
     
+    public func shouldCheckForUpdates(enabled: Bool, lastCheckDate: Date?, currentTime: Date) -> Bool {
+        guard enabled else { return false }
+        if let lastCheck = lastCheckDate,
+           currentTime.timeIntervalSince(lastCheck) < 86400 {
+            return false
+        }
+        return true
+    }
+    
     public func checkForUpdates() {
+        guard shouldCheckForUpdates(
+            enabled: AppState.shared.checkForUpdatesEnabled,
+            lastCheckDate: AppState.shared.lastUpdateCheckDate,
+            currentTime: Date()
+        ) else { return }
+        
         guard let url = URL(string: repoUrl) else { return }
         
         let task = URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, error == nil else {
                 print("Failed to check for updates: \(error?.localizedDescription ?? "No data")")
                 return
+            }
+            
+            DispatchQueue.main.async {
+                AppState.shared.lastUpdateCheckDate = Date()
             }
             
             do {
@@ -37,3 +56,5 @@ public class UpdateManager {
         task.resume()
     }
 }
+
+

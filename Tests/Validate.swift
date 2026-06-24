@@ -235,4 +235,31 @@ for i in 1...10 {
 assert(history.recentLinks.count == 5, "History limit failed")
 assert(history.recentLinks.first?.url.absoluteString == "https://10.com", "History limit order failed")
 
+print("🚀 Running Version Comparison Tests...")
+func testVersionComparison(latest: String, current: String) -> Bool {
+    return latest.compare(current, options: .numeric) == .orderedDescending
+}
+assert(testVersionComparison(latest: "1.0.9", current: "0.0.0-dev") == true, "dev version check failed")
+assert(testVersionComparison(latest: "1.0.9", current: "1.0.8") == true, "older version check failed")
+assert(testVersionComparison(latest: "1.0.9", current: "1.0.9") == false, "same version check failed")
+assert(testVersionComparison(latest: "1.0.8", current: "1.0.9") == false, "newer version check failed")
+
+print("🚀 Running Update Rate Limiting and Enablement Tests...")
+func shouldCheckForUpdates(enabled: Bool, lastCheckDate: Date?, currentTime: Date) -> Bool {
+    guard enabled else { return false }
+    if let lastCheck = lastCheckDate,
+       currentTime.timeIntervalSince(lastCheck) < 86400 {
+        return false
+    }
+    return true
+}
+
+let now = Date()
+assert(shouldCheckForUpdates(enabled: false, lastCheckDate: nil, currentTime: now) == false, "should not check if disabled")
+assert(shouldCheckForUpdates(enabled: true, lastCheckDate: nil, currentTime: now) == true, "should check on first run")
+let oneHourAgo = now.addingTimeInterval(-3600)
+assert(shouldCheckForUpdates(enabled: true, lastCheckDate: oneHourAgo, currentTime: now) == false, "should not check within 24 hours")
+let twentyFiveHoursAgo = now.addingTimeInterval(-90000)
+assert(shouldCheckForUpdates(enabled: true, lastCheckDate: twentyFiveHoursAgo, currentTime: now) == true, "should check after 24 hours")
+
 print("✅ All Standalone Tests Passed!")
