@@ -10,9 +10,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version tag for release (e.g., v1.0.0)'
-        required: true
-        default: 'v1.0.0'
+        description: 'Version tag for release (e.g., v1.0.0, or leave empty to auto-increment)'
+        required: false
+        default: ''
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -24,21 +24,51 @@ jobs:
     permissions:
       contents: write
       checks: write
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Select Swift Version
         run: |
           swift --version
           swift test --help
 
+      - name: Determine Version
+        id: get_version
+        run: |
+          git fetch --tags --force
+          LATEST_TAG=$(git tag -l "v*" | sort -V | tail -n 1)
+          if [ -z "$LATEST_TAG" ]; then
+            BASE_VERSION="v1.0.0"
+          else
+            VERSION_STR=${LATEST_TAG#v}
+            IFS='.' read -r major minor patch <<< "$VERSION_STR"
+            next_patch=$((patch + 1))
+            BASE_VERSION="v${major}.${minor}.${next_patch}"
+          fi
+          
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${{ github.ref_name }}"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          elif [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            VERSION="$BASE_VERSION"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="$BASE_VERSION"
+          else
+            VERSION="${BASE_VERSION}-dev"
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Computed version: $VERSION"
+
       - name: Inject Version into Info.plist
         run: |
-          VERSION="${{ github.event.inputs.version }}"
-          if [ -z "$VERSION" ]; then
-            VERSION="${{ github.ref_name }}"
-          fi
+          VERSION="${{ steps.get_version.outputs.version }}"
           # Strip 'v' prefix if present for Info.plist compatibility
           VERSION_CLEAN=$(echo $VERSION | sed 's/^v//')
           echo "Injecting version $VERSION_CLEAN into Info.plist"
@@ -75,22 +105,49 @@ jobs:
         run: swift Tests/Performance.swift
 
       - name: Build DMG
-        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        if: |
+          github.event_name == 'workflow_dispatch' ||
+          startsWith(github.ref, 'refs/tags/v') ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/main')
         run: |
           chmod +x scripts/build-dmg.sh
           ./scripts/build-dmg.sh
 
       - name: Upload DMG Artifact
-        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        if: |
+          github.event_name == 'workflow_dispatch' ||
+          startsWith(github.ref, 'refs/tags/v') ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/main')
         uses: actions/upload-artifact@v4
         with:
           name: Browserly-DMG
           path: Browserly.dmg
 
+      - name: Create and Push Git Tag
+        if: |
+          (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+          (github.event_name == 'workflow_dispatch')
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          if [[ "$VERSION" != *-dev ]]; then
+            if ! git rev-parse "$VERSION" >/dev/null 2>&1; then
+              echo "Tagging commit with $VERSION"
+              git config --global user.name "github-actions[bot]"
+              git config --global user.email "github-actions[bot]@users.noreply.github.com"
+              git tag "$VERSION"
+              git push origin "$VERSION"
+            else
+              echo "Tag $VERSION already exists. Skipping tagging step."
+            fi
+          fi
+
   release:
     name: Create Release
     needs: build-and-test
-    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -106,8 +163,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.version || github.ref_name }}
-          name: Release ${{ github.event.inputs.version || github.ref_name }}
+          tag_name: ${{ needs.build-and-test.outputs.version }}
+          name: Release ${{ needs.build-and-test.outputs.version }}
           files: Browserly.dmg
           generate_release_notes: true
         env:
