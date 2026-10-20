@@ -8,7 +8,8 @@ enum SourceAppResolver {
         lookup: (pid_t) -> String? = { NSRunningApplication(processIdentifier: $0)?.bundleIdentifier }
     ) -> String? {
         guard let sender = event?.attributeDescriptor(forKeyword: AEKeyword(keySenderPIDAttr)),
-              sender.descriptorType == DescType(typeSInt32),
+              // macOS may deliver the sender PID as signed or unsigned 32-bit data.
+              [DescType(typeSInt32), DescType(typeUInt32)].contains(sender.descriptorType),
               sender.data.count == MemoryLayout<Int32>.size,
               sender.int32Value > 0 else {
             return nil

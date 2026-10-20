@@ -32,6 +32,28 @@ final class SourceAppResolverTests: XCTestCase {
         XCTAssertEqual(result?.ruleName, "Telegram Links")
     }
 
+    func testAcceptsUnsignedSenderPIDFromMacOS() {
+        var pid: UInt32 = 1234
+        let sender = withUnsafeBytes(of: &pid) {
+            NSAppleEventDescriptor(descriptorType: DescType(typeUInt32), data: Data($0))!
+        }
+        XCTAssertEqual(SourceAppResolver.bundleIdentifier(from: event(sender: sender)) { value in
+            XCTAssertEqual(value, 1234)
+            return "ru.keepcoder.Telegram"
+        }, "ru.keepcoder.Telegram")
+    }
+
+    func testRejectsUnsignedPIDOutsideSignedProcessIDRange() {
+        var pid = UInt32.max
+        let sender = withUnsafeBytes(of: &pid) {
+            NSAppleEventDescriptor(descriptorType: DescType(typeUInt32), data: Data($0))!
+        }
+        XCTAssertNil(SourceAppResolver.bundleIdentifier(from: event(sender: sender)) { _ in
+            XCTFail("Out-of-range PID must not trigger a process lookup")
+            return "com.browserly.app"
+        })
+    }
+
     func testMissingEventReturnsUnknownWithoutLookup() {
         XCTAssertNil(SourceAppResolver.bundleIdentifier(from: nil) { _ in
             XCTFail("Missing sender must not trigger a process lookup")
