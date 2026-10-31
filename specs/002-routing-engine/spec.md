@@ -33,6 +33,7 @@ As a user, when I click any link inside Slack, I want it to open in my "Work" br
 
 **Acceptance Scenarios**:
 1. **Given** a rule exists for source application "Slack" mapping to "Work", **When** any link is clicked within Slack, **Then** the link opens in the "Work" browser.
+2. **Given** a rule exists for a source application (e.g. Telegram or Slack), **When** a link is clicked and Browserly transitions to the foreground, **Then** the source application is resolved from the Apple Event sender PID (`keySenderPIDAttr`) rather than the foreground application, ensuring the rule matches correctly.
 
 ---
 
@@ -101,5 +102,4 @@ graph TD
 - **Persistence**: Configuration is stored in `Application Support` as JSON or YAML for easy editing.
 - **Precedence**: Rule precedence is determined strictly by the order in the configuration file.
 - **Validation**: Rules with invalid target browsers will result in falling back to the default browser.
-- **OS Context**: The system can reliably identify the "frontmost application" at the time a link is clicked to determine the source.
-tion" at the time a link is clicked to determine the source.
+- **OS Context**: The system resolves the source application from the Apple Event's sender process identifier (`keySenderPIDAttr`) via `SourceAppResolver`, avoiding race conditions with foreground application transitions.

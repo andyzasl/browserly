@@ -55,7 +55,8 @@ Browserly/
 │   └── Storage/                    # ConfigManager, HistoryManager
 ├── System/
 │   ├── BrowserDetector.swift       # LSCopyAllHandlersForURLScheme wrapper
-│   └── ProcessLauncher.swift       # NSWorkspace and Process execution
+│   ├── ProcessLauncher.swift       # NSWorkspace and Process execution
+│   └── SourceAppResolver.swift     # Resolves sender bundle ID from Apple Event keySenderPIDAttr
 ├── UI/
 │   ├── MenuBar/                    # PopoverView, HistoryRow, BrowserPicker
 │   └── Components/                 # Shared UI elements

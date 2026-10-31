@@ -63,10 +63,11 @@ As a user, I want clicking a link in any external application (Slack, Mail, Term
 - **FR-006**: The system MUST provide a programmatic way to check if the current application is the default handler for a given scheme.
 - **FR-007**: The system MUST be able to trigger the macOS system prompt to become the default browser.
 - **FR-008**: The system MUST display a persistent warning in the user interface whenever the application is not the default handler for HTTP/HTTPS schemes.
+- **FR-009**: The system MUST resolve the originating sender bundle identifier from the Apple Event descriptor's `keySenderPIDAttr` attribute (`SourceAppResolver`) for all incoming URL events, safely falling back to an unknown source when sender metadata is unavailable or unresolvable.
 
 ### Key Entities
 
-- **Incoming URL Event**: Represents a single URL capture event, containing the raw URL and source information.
+- **Incoming URL Event**: Represents a single URL capture event, containing the raw URL and source information (originating process bundle ID resolved from the Apple Event sender PID).
 - **Handler Configuration**: The static registration data required by macOS to recognize the app as a potential browser.
 
 ## Success Criteria *(mandatory)*

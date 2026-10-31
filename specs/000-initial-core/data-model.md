@@ -47,7 +47,7 @@ Represents a recently intercepted URL for the Menu Bar UI.
 |-------|------|-------------|----------|
 | `url` | `URL` | The intercepted URL. | Yes |
 | `timestamp` | `Date` | When the interception occurred. | Yes |
-| `sourceAppBundleId` | `String` | Bundle ID of the app where the link was clicked (if detected). | No |
+| `sourceAppBundleId` | `String` | Bundle ID of the app where the link was clicked (resolved from Apple Event sender PID via `SourceAppResolver`). | No |
 | `routedToBrowserId`| `String` | The ID of the browser the routing engine selected. | Yes |
 
 ## Global State (`UserDefaults`)

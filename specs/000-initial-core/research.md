@@ -21,6 +21,9 @@
 - **Alternatives considered**: Using legacy `NSStatusItem` with an `NSPopover` (more boilerplate, less declarative than `MenuBarExtra`).
 
 ## 5. Identifying Source Application
-- **Decision**: Use `NSWorkspace.shared.frontmostApplication` immediately upon receiving the URL event to heuristically determine the source application.
-- **Rationale**: Apple Events do not always reliably include the sender's bundle ID in a sandbox-friendly way. Checking the frontmost app at the moment of capture is the most reliable fallback for identifying where the link was clicked.
-- **Alternatives considered**: Attempting to extract the `keyEventSource` from the Apple Event descriptor (often null or restricted).
+- **Decision**: Resolve the originating source application from the Apple Event's `keySenderPIDAttr` attribute via `SourceAppResolver` using `NSRunningApplication(processIdentifier:)`.
+- **Rationale**: Relying on `NSWorkspace.shared.frontmostApplication` caused critical race conditions. When Browserly is activated or brought to the foreground during link handling, `frontmostApplication` frequently returned Browserly itself (`com.browserly.app`) or whichever window was focused during workspace transitions, causing `.sourceApp` rules (e.g. `ru.keepcoder.Telegram`, Slack) to fail.
+- **Apple Event Details**: macOS delivers the originating process PID in the Apple Event descriptor attribute `keySenderPIDAttr` (supported as both `typeSInt32` and `typeUInt32`). Validating data length (`MemoryLayout<Int32>.size`) and positive PID boundaries provides reliable sender attribution. If the event or sender metadata is absent, or the process has terminated, it safely yields `nil` ("Unknown") rather than misattributing to an unrelated foreground application.
+- **Alternatives considered**:
+  - `NSWorkspace.shared.frontmostApplication`: Deprecated/superseded due to focus race conditions and false attribution to Browserly (addressed in PR #4).
+  - Attempting to extract `keyEventSource` from the Apple Event descriptor: Frequently null or restricted in modern macOS.

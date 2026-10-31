@@ -40,7 +40,7 @@ We will build the application from the inside out: starting with data models, th
 **Independent Test**: Verify a clicked link opens in the correct Chrome profile based on a JSON config without needing the Menu Bar UI.
 
 - [x] T010 [US1] Write unit tests for `RoutingEngine` matching scenarios in `BrowserlyTests/RoutingTests/RoutingEngineTests.swift`.
-- [x] T011 [US1] Implement `AppDelegate` with `NSAppleEventManager` to intercept URLs and capture `NSWorkspace.shared.frontmostApplication` in `Browserly/App/AppDelegate.swift`.
+- [x] T011 [US1] Implement `AppDelegate` with `NSAppleEventManager` to intercept URLs and resolve originating app via `SourceAppResolver` (`keySenderPIDAttr`) in `Sources/Browserly/App/AppDelegate.swift` (supersedes initial `frontmostApplication` heuristic; PR #4).
 - [x] T012 [US1] Implement `ProcessLauncher` to handle Chromium CLI arguments (`--profile-directory`, `--incognito`) and standard `NSWorkspace` launches in `Browserly/System/ProcessLauncher.swift`.
 - [x] T013 [US1] Connect `AppDelegate` to `RoutingEngine` and `ProcessLauncher` to complete the interception-to-launch loop in `Browserly/App/AppDelegate.swift`.
 - [x] T014 [US1] Add logic to `AppDelegate` to record successfully dispatched URLs to `HistoryManager`.
