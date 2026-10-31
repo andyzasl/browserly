@@ -1,6 +1,12 @@
-description = "Create or update the project constitution from interactive or provided principle inputs, ensuring all dependent templates stay in sync."
+---
+name: "speckit-constitution"
+description: "Create or update the project constitution from interactive or provided principle inputs, ensuring all dependent templates stay in sync."
+compatibility: "Requires spec-kit project structure with .specify/ directory"
+metadata:
+  author: "github-spec-kit"
+  source: "templates/commands/constitution.md"
+---
 
-prompt = """
 
 ## User Input
 
@@ -143,4 +149,4 @@ Check if `.specify/extensions.yml` exists in the project root.
     Executing: `/{command}`
     EXECUTE_COMMAND: {command}
     ```
-- If no hooks are registered or `.specify/extensions.yml` does not exist, skip silently"""
+- If no hooks are registered or `.specify/extensions.yml` does not exist, skip silently

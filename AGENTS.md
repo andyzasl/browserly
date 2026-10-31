@@ -21,6 +21,8 @@ CI runs: `swift build -c release` → `swift Tests/Validate.swift` → `swift Te
 
 - **Entry point**: `Sources/Browserly/App/BrowserlyApp.swift` — `@main` SwiftUI App with `MenuBarExtra`
 - **URL handling**: `AppDelegate.swift` receives system URL events (registered via `Info.plist` as HTTP/HTTPS handler)
+- **Source app resolution**: `SourceAppResolver.swift` resolves originating app bundle ID from Apple Event sender PID (`keySenderPIDAttr`)
+- **Redirect decoding**: `URLRedirectDecoder.swift` pre-extracts target URLs from known enterprise wrappers (Teams, Outlook SafeLinks, Proofpoint v2, Slack) up to 3 levels deep
 - **Routing**: `RoutingEngine.swift` matches URLs against rules (types: `domain`, `regex`, `sourceApp`), returns a target browser ID
 - **Config**: `ConfigManager.swift` persists to `~/Library/Application Support/Browserly/config.json`
 - **Browser discovery**: `BrowserDetector.swift` finds installed browsers at runtime

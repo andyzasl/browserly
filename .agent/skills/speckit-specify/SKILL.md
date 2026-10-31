@@ -1,6 +1,12 @@
-description = "Create or update the feature specification from a natural language feature description."
+---
+name: "speckit-specify"
+description: "Create or update the feature specification from a natural language feature description."
+compatibility: "Requires spec-kit project structure with .specify/ directory"
+metadata:
+  author: "github-spec-kit"
+  source: "templates/commands/specify.md"
+---
 
-prompt = """
 
 ## User Input
 
@@ -46,7 +52,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-The text the user typed after `/speckit.specify` in the triggering message **is** the feature description. Assume you always have it available in this conversation even if `{{args}}` appears literally below. Do not ask the user to repeat it unless they provided an empty command.
+The text the user typed after `/speckit.specify` in the triggering message **is** the feature description. Assume you always have it available in this conversation even if `$ARGUMENTS` appears literally below. Do not ask the user to repeat it unless they provided an empty command.
 
 Given that feature description, do this:
 
@@ -68,10 +74,10 @@ Given that feature description, do this:
    - If `"timestamp"`, add `--timestamp` (Bash) or `-Timestamp` (PowerShell) to the script invocation
    - If `"sequential"` or absent, do not add any extra flag (default behavior)
 
-   - Bash example: `.specify/scripts/bash/create-new-feature.sh "{{args}}" --json --short-name "user-auth" "Add user authentication"`
-   - Bash (timestamp): `.specify/scripts/bash/create-new-feature.sh "{{args}}" --json --timestamp --short-name "user-auth" "Add user authentication"`
-   - PowerShell example: `.specify/scripts/bash/create-new-feature.sh "{{args}}" -Json -ShortName "user-auth" "Add user authentication"`
-   - PowerShell (timestamp): `.specify/scripts/bash/create-new-feature.sh "{{args}}" -Json -Timestamp -ShortName "user-auth" "Add user authentication"`
+   - Bash example: `.specify/scripts/bash/create-new-feature.sh "$ARGUMENTS" --json --short-name "user-auth" "Add user authentication"`
+   - Bash (timestamp): `.specify/scripts/bash/create-new-feature.sh "$ARGUMENTS" --json --timestamp --short-name "user-auth" "Add user authentication"`
+   - PowerShell example: `.specify/scripts/bash/create-new-feature.sh "$ARGUMENTS" -Json -ShortName "user-auth" "Add user authentication"`
+   - PowerShell (timestamp): `.specify/scripts/bash/create-new-feature.sh "$ARGUMENTS" -Json -Timestamp -ShortName "user-auth" "Add user authentication"`
 
    **IMPORTANT**:
    - Do NOT pass `--number` — the script determines the correct next number automatically
@@ -79,7 +85,7 @@ Given that feature description, do this:
    - You must only ever run this script once per feature
    - The JSON is provided in the terminal as output - always refer to it to get the actual content you're looking for
    - The JSON output will contain BRANCH_NAME and SPEC_FILE paths
-   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\\''m Groot' (or double-quote if possible: "I'm Groot")
+   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot")
 
 3. Load `.specify/templates/spec-template.md` to understand required sections.
 
@@ -295,4 +301,4 @@ Success criteria must be:
 - "API response time is under 200ms" (too technical, use "Users see results instantly")
 - "Database can handle 1000 TPS" (implementation detail, use user-facing metric)
 - "React components render efficiently" (framework-specific)
-- "Redis cache hit rate above 80%" (technology-specific)"""
+- "Redis cache hit rate above 80%" (technology-specific)
