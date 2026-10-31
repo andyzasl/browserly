@@ -72,7 +72,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
-        let sourceAppBundleId = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        let sourceAppBundleId = SourceAppResolver.bundleIdentifier(
+            from: NSAppleEventManager.shared().currentAppleEvent
+        )
         for url in urls {
             print("Intercepted openURL: \(url) from \(sourceAppBundleId ?? "Unknown")")
             route(url: url, sourceAppBundleId: sourceAppBundleId)
@@ -141,8 +143,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func handleURLEvent(_ event: NSAppleEventDescriptor, withReplyEvent replyEvent: NSAppleEventDescriptor) {
-        // Capture frontmost application *immediately* as the source app
-        let sourceAppBundleId = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        let sourceAppBundleId = SourceAppResolver.bundleIdentifier(from: event)
         
         guard let urlString = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.stringValue,
               let url = URL(string: urlString) else {
