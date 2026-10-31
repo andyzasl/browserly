@@ -5,6 +5,11 @@ on:
     branches: [ main ]
     tags:
       - 'v*'
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+      - 'LICENSE'
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -30,6 +35,7 @@ jobs:
       checks: write
     outputs:
       version: ${{ steps.get_version.outputs.version }}
+      should_release: ${{ steps.get_version.outputs.should_release }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -55,20 +61,43 @@ jobs:
             BASE_VERSION="v${major}.${minor}.${next_patch}"
           fi
           
+          SHOULD_RELEASE="false"
           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             VERSION="${{ github.ref_name }}"
+            SHOULD_RELEASE="true"
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
             VERSION="${{ github.event.inputs.version }}"
+            SHOULD_RELEASE="true"
           elif [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            VERSION="$BASE_VERSION"
+            # Verify if there are actual app code changes since the previous release tag
+            if [ -n "$LATEST_TAG" ]; then
+              APP_CHANGES=$(git diff --name-only "$LATEST_TAG"..HEAD -- Sources/ Package.swift scripts/build-dmg.sh)
+            else
+              APP_CHANGES="initial"
+            fi
+            
+            if [ -n "$APP_CHANGES" ]; then
+              VERSION="$BASE_VERSION"
+              SHOULD_RELEASE="true"
+              echo "App changes detected since $LATEST_TAG:"
+              echo "$APP_CHANGES"
+            else
+              VERSION="$LATEST_TAG"
+              SHOULD_RELEASE="false"
+              echo "No app changes in Sources/, Package.swift, or scripts/build-dmg.sh since $LATEST_TAG. Skipping release generation."
+            fi
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             VERSION="$BASE_VERSION"
+            SHOULD_RELEASE="true"
           else
             VERSION="${BASE_VERSION}-dev"
+            SHOULD_RELEASE="false"
           fi
           
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "should_release=$SHOULD_RELEASE" >> $GITHUB_OUTPUT
           echo "Computed version: $VERSION"
+          echo "Should release: $SHOULD_RELEASE"
 
       - name: Inject Version into Info.plist
         run: |
@@ -99,19 +128,13 @@ jobs:
         run: swift Tests/Performance.swift
 
       - name: Build DMG
-        if: |
-          github.event_name == 'workflow_dispatch' ||
-          startsWith(github.ref, 'refs/tags/v') ||
-          (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        if: steps.get_version.outputs.should_release == 'true'
         run: |
           chmod +x scripts/build-dmg.sh
           ./scripts/build-dmg.sh
 
       - name: Upload DMG Artifact
-        if: |
-          github.event_name == 'workflow_dispatch' ||
-          startsWith(github.ref, 'refs/tags/v') ||
-          (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        if: steps.get_version.outputs.should_release == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: Browserly-DMG
@@ -119,8 +142,9 @@ jobs:
 
       - name: Create and Push Git Tag
         if: |
-          (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-          (github.event_name == 'workflow_dispatch')
+          steps.get_version.outputs.should_release == 'true' &&
+          (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+          !startsWith(github.ref, 'refs/tags/v')
         run: |
           VERSION="${{ steps.get_version.outputs.version }}"
           if [[ "$VERSION" != *-dev ]]; then
@@ -138,10 +162,7 @@ jobs:
   release:
     name: Create Release
     needs: build-and-test
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      startsWith(github.ref, 'refs/tags/v') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    if: needs.build-and-test.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
