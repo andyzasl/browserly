@@ -1,6 +1,7 @@
 # Browserly
 
 [![CI](https://github.com/andyzasl/browserly/actions/workflows/main.yml/badge.svg)](https://github.com/andyzasl/browserly/actions/workflows/main.yml)
+[![CodeQL Analysis](https://github.com/andyzasl/browserly/actions/workflows/codeql.yml/badge.svg)](https://github.com/andyzasl/browserly/actions/workflows/codeql.yml)
 [![Release](https://img.shields.io/github/v/release/andyzasl/browserly)](https://github.com/andyzasl/browserly/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-macOS%2014%2B-lightgrey.svg)](https://www.apple.com/macos/)
