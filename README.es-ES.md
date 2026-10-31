@@ -1,8 +1,14 @@
-
-
 # Browserly
 
+[![CI](https://github.com/andyzasl/browserly/actions/workflows/main.yml/badge.svg)](https://github.com/andyzasl/browserly/actions/workflows/main.yml)
+[![Release](https://img.shields.io/github/v/release/andyzasl/browserly)](https://github.com/andyzasl/browserly/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-macOS%2014%2B-lightgrey.svg)](https://www.apple.com/macos/)
+[![Swift](https://img.shields.io/badge/Swift-5.9%2B-F05138.svg?logo=swift&logoColor=white)](https://swift.org)
+
 Una inteligente aplicación para la barra de menús de macOS que dirige las URL al navegador correcto según reglas personalizadas.
+
+[English](README.md) | [Español](README.es-ES.md)
 
 <p align="center">
   <img src="docs/images/screenshot.png" alt="Browserly menu bar popover" width="600">

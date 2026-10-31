@@ -17,6 +17,10 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   build-and-test:
     name: Build and Test
@@ -79,16 +83,6 @@ jobs:
 
       - name: Run Unit Tests
         run: swift test --parallel --xunit-output unit-tests.xml
-
-      - name: Locate Test Report
-        if: always()
-        run: |
-          echo "Searching for unit-tests.xml in current directory:"
-          ls -l unit-tests.xml || echo "Not found in root"
-          echo "Searching for any .xml files in the entire workspace:"
-          find . -name "*.xml"
-          echo "Listing .build directory contents (recursive):"
-          ls -R .build | grep .xml || echo "No XMLs in .build"
 
       - name: Test Report
         uses: dorny/test-reporter@v1
